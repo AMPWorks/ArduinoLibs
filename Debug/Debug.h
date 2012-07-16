@@ -1,5 +1,10 @@
-/* Set to enable debugging macros */
-#define DEBUG
+/*
+ * In order to enable this code in a sketch, place the following:
+ *   #define DEBUG
+ *   #define DEBUG_VERBOSE <level>
+ * before including this header.
+ */
+
 #ifdef DEBUG
   #define DEBUG_VERBOSE 2
   #define DEBUG_PRINT(v, x) if (v <= DEBUG_VERBOSE) Serial.print(x)
