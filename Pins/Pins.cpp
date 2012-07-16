@@ -22,7 +22,7 @@ Pin::Pin(byte _pin, boolean _analog)
 }
 
 void
-Switch::init(byte _pin, pin_action_t _action)
+Sensor::init(byte _pin, pin_action_t _action)
 {
   pinMode(pin, INPUT);
   action = _action;
@@ -35,16 +35,16 @@ Switch::init(byte _pin, pin_action_t _action)
 }
 
 
-Switch::Switch(byte _pin, boolean _analog, pin_action_t _action) 
-    : Pin(_pin, _analog, PIN_TYPE_SWITCH)
+Sensor::Sensor(byte _pin, boolean _analog, pin_action_t _action) 
+    : Pin(_pin, _analog, PIN_TYPE_SENSOR)
 {
   init(_pin, _action);
   action_arg = NULL;
 
 }
  
-Switch::Switch(byte _pin, boolean _analog, pin_action_t _action, void *_action_arg)
-    : Pin(_pin, _analog, PIN_TYPE_SWITCH)
+Sensor::Sensor(byte _pin, boolean _analog, pin_action_t _action, void *_action_arg)
+    : Pin(_pin, _analog, PIN_TYPE_SENSOR)
 {
   init(_pin, _action);
   action_arg = _action_arg;
@@ -52,7 +52,7 @@ Switch::Switch(byte _pin, boolean _analog, pin_action_t _action, void *_action_a
 
 
 int
-Switch::read(void) 
+Sensor::read(void) 
 {
   if (analog) {
     curr_state = analogRead(pin);
@@ -73,7 +73,7 @@ Switch::read(void)
 
 
 int
-Switch::debouncedRead(void)
+Sensor::debouncedRead(void)
 {
   byte currentValue;
   if (analog) {
@@ -110,17 +110,17 @@ Switch::debouncedRead(void)
 
 /* Check the state of every sensor */
 boolean
-checkSwitches(Pin **pins, byte num_pins, boolean debounce) {
+checkSensors(Pin **pins, byte num_pins, boolean debounce) {
   boolean retval = false;
   for (byte i = 0; i < num_pins; i++) {
     Pin *pin = pins[i];
-    if (pin->type == PIN_TYPE_SWITCH) {
+    if (pin->type == PIN_TYPE_SENSOR) {
       if (debounce && !(pin->analog)) {
-        if (((Switch *)pin)->debouncedRead()) {
+        if (((Sensor *)pin)->debouncedRead()) {
           retval = true;
         }
       } else {
-        if (((Switch *)pin)->read()) {
+        if (((Sensor *)pin)->read()) {
           ;
         }
       }

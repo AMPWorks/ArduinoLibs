@@ -1,11 +1,11 @@
 /*
- * Switch class
+ * Sensor class
  *
  * Written by Adam Phelps (amp@cs.stanford.edu)
  */
 
-#ifndef SWITCHES_H
-#define SWITCHES_H
+#ifndef SENSORES_H
+#define SENSORES_H
 
 #include <Arduino.h>
 
@@ -14,7 +14,7 @@
 typedef enum 
 {
   PIN_TYPE_NONE,
-  PIN_TYPE_SWITCH
+  PIN_TYPE_SENSOR
 } pin_type_t;
   
 
@@ -33,11 +33,11 @@ class Pin
 
 typedef void (*pin_action_t)(int pin, int value, void *arg);
 
-class Switch : public Pin
+class Sensor : public Pin
 {
   public:
-  Switch(byte _pin, boolean _analog, pin_action_t _action);
-  Switch(byte _pin, boolean _analog,
+  Sensor(byte _pin, boolean _analog, pin_action_t _action);
+  Sensor(byte _pin, boolean _analog,
          pin_action_t _action, void *_action_arg);
   int read(void);
   int debouncedRead(void);
@@ -55,6 +55,6 @@ class Switch : public Pin
   unsigned long debounce_delay;
 };
 
-boolean checkSwitches(Pin **pins, byte num_pins, boolean debounce);
+boolean checkSensors(Pin **pins, byte num_pins, boolean debounce);
 
 #endif
