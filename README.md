@@ -1,7 +1,7 @@
 ArduinoLibs
 ===========
 
-Various utility libraries
+Various utility libraries.  In order to use these libraries each subdirectory should be linked into the global Arduino library directory and the Arduino software restarted.
 
 Pins
 ----
