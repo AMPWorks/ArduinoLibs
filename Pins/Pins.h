@@ -51,12 +51,14 @@ public:
 
   pin_action_t action;
   void *action_arg;
-  boolean pull_up;
+
+  unsigned int curr_state;
 
 private:
   void init(boolean _pull_up, pin_action_t _action, void *_action_arg);
 
-  unsigned int curr_state;
+  boolean pull_up;
+
   unsigned int prev_state;
 
   unsigned long debounce_time;
