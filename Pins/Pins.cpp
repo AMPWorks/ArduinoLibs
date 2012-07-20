@@ -1,11 +1,14 @@
 /*
- * Code for on-off controls
+ * Pin interface
  */
 #include <Arduino.h>
 
 #include "Pins.h"
 #include "Debug.h"
 
+/******************************************************************************
+ * Generic pin interface
+ *****************************************************************************/
 Pin::Pin(byte _pin, boolean _analog, pin_type_t _type)
 {
   pin = _pin;
@@ -21,43 +24,59 @@ Pin::Pin(byte _pin, boolean _analog)
   Pin(_pin, PIN_TYPE_NONE);
 }
 
+/******************************************************************************
+ * Sensor interface
+ *****************************************************************************/
 void
-Sensor::init(byte _pin, pin_action_t _action)
+Sensor::init(boolean _pull_up, pin_action_t _action, void *_action_arg)
 {
-  pinMode(pin, INPUT);
+  pull_up = _pull_up;
   action = _action;
+  action_arg = _action_arg;
 
   /* Init to defaults */
   curr_state = LOW;
   prev_state = LOW;
   debounce_time = 0;
   debounce_delay = DEFAULT_DEBOUNCE_DELAY;
+
+  if (pull_up) {
+     pinMode(pin, INPUT_PULLUP);
+  } else {
+    pinMode(pin, INPUT);
+  }
 }
 
-
-Sensor::Sensor(byte _pin, boolean _analog, pin_action_t _action) 
+Sensor::Sensor(byte _pin, boolean _pull_up, boolean _analog,
+               pin_action_t _action) 
     : Pin(_pin, _analog, PIN_TYPE_SENSOR)
 {
-  init(_pin, _action);
-  action_arg = NULL;
-
+  init(_pull_up, _action, NULL);
 }
  
-Sensor::Sensor(byte _pin, boolean _analog, pin_action_t _action, void *_action_arg)
+Sensor::Sensor(byte _pin, boolean _pull_up, boolean _analog,
+               pin_action_t _action, void *_action_arg)
     : Pin(_pin, _analog, PIN_TYPE_SENSOR)
 {
-  init(_pin, _action);
-  action_arg = _action_arg;
+  init(_pull_up, _action, _action_arg);
 }
 
-
+/*
+ * Read the raw value of the sensor and perform an action if one is assigned
+ */
 int
 Sensor::read(void) 
 {
+  prev_state = curr_state;
   if (analog) {
     curr_state = analogRead(pin);
   } else {
     curr_state = digitalRead(pin);
+    if (pull_up) {
+      /* Pins set to INPUT_PULLUP will register HIGH when off */
+      if (curr_state == HIGH) curr_state = LOW;
+      else curr_state = HIGH;
+    }
   }
 
   DEBUG_PRINT(2, "read- pin ");
@@ -71,7 +90,10 @@ Sensor::read(void)
   return (curr_state);
 }
 
-
+/*
+ * Read the value of the sensor with debouncing and perform an action if
+ * one is assigned.
+ */
 int
 Sensor::debouncedRead(void)
 {
@@ -80,6 +102,11 @@ Sensor::debouncedRead(void)
     currentValue = analogRead(pin);
   } else {
     currentValue = digitalRead(pin);
+    if (pull_up) {
+      /* Pins set to INPUT_PULLUP will register HIGH when off */
+      if (currentValue == HIGH) currentValue = LOW;
+      else currentValue = HIGH;
+    }
   }
   
   if (currentValue != prev_state) {
@@ -108,10 +135,11 @@ Sensor::debouncedRead(void)
   return (curr_state == HIGH);
 }
 
-/* Check the state of every sensor */
+/* Check the state of every sensor in the array */
 boolean
 checkSensors(Pin **pins, byte num_pins, boolean debounce) {
   boolean retval = false;
+
   for (byte i = 0; i < num_pins; i++) {
     Pin *pin = pins[i];
     if (pin->type == PIN_TYPE_SENSOR) {
