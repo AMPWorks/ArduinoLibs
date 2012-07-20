@@ -41,7 +41,7 @@ Sensor::init(boolean _pull_up, pin_action_t _action, void *_action_arg)
   debounce_delay = DEFAULT_DEBOUNCE_DELAY;
 
   if (pull_up) {
-     pinMode(pin, INPUT_PULLUP);
+    pinMode(pin, INPUT_PULLUP);
   } else {
     pinMode(pin, INPUT);
   }
@@ -149,10 +149,53 @@ checkSensors(Pin **pins, byte num_pins, boolean debounce) {
         }
       } else {
         if (((Sensor *)pin)->read()) {
-          ;
+          retval = true;
         }
       }
     }
   }
   return retval;
 }
+
+
+/******************************************************************************
+ * Output interface
+ *****************************************************************************/
+
+Output::Output(byte pin, byte value)
+    : Pin(pin, false, PIN_TYPE_OUTPUT)
+{
+  _value = value;
+  _next_value = value;
+
+  pinMode(pin, OUTPUT);
+  digitalWrite(pin, _value);
+}
+
+/* Set the new value */
+void
+Output::setValue(byte value) 
+{
+  _next_value = value;
+}
+
+
+/* Apply the next value */
+void
+Output::trigger(void) 
+{
+  _value = _next_value;
+  digitalWrite(pin, _value);
+}
+
+void triggerOutputs(Pin **pins, byte num_pins) 
+{
+  for (byte i = 0; i < num_pins; i++) {
+    Pin *pin = pins[i];
+    if (pin->type == PIN_TYPE_OUTPUT) {
+      ((Output *)pin)->trigger();
+    }
+  }  
+}
+
+

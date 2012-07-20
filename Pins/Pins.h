@@ -13,7 +13,8 @@
 typedef enum 
 {
   PIN_TYPE_NONE,
-  PIN_TYPE_SENSOR
+  PIN_TYPE_SENSOR,
+  PIN_TYPE_OUTPUT
 } pin_type_t;
   
 /*
@@ -64,5 +65,22 @@ private:
 
 /* Read the status of all pins in the array and perform actions if indicated */
 boolean checkSensors(Pin **pins, byte num_pins, boolean debounce);
+
+/*
+ * Single-pin output class
+ */
+class Output : public Pin
+{
+public:
+  Output(byte pin, byte value);
+
+  void setValue(byte value);
+  void trigger(void);
+  
+  byte _value;
+  byte _next_value;
+};
+
+void triggerOutputs(Pin **pins, byte num_pins);
 
 #endif
