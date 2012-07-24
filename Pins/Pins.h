@@ -85,4 +85,12 @@ public:
 
 void triggerOutputs(Pin **pins, byte num_pins);
 
+
+
+/*
+ * Generic pin actions
+ */
+void action_set_output(int pin, int value, void *arg);
+void action_print_value(int pin, int value, void *arg);
+
 #endif
