@@ -41,7 +41,11 @@ Sensor::init(boolean _pull_up, pin_action_t _action, void *_action_arg)
   debounce_delay = DEFAULT_DEBOUNCE_DELAY;
 
   if (pull_up) {
-    pinMode(pin, INPUT_PULLUP);
+    if (analog) {
+      digitalWrite(pin, HIGH);
+    } else {
+      pinMode(pin, INPUT_PULLUP);
+    }
   } else {
     pinMode(pin, INPUT);
   }
