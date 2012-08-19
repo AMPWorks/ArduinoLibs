@@ -90,7 +90,11 @@ void triggerOutputs(Pin **pins, byte num_pins);
 /*
  * Generic pin actions
  */
+
+/* Set the provided Output to the indicated value */
 void action_set_output(int pin, int value, void *arg);
+
+/* Print the value of a pin */
 void action_print_value(int pin, int value, void *arg);
 
 #endif
