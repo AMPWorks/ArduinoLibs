@@ -30,12 +30,9 @@ Shift::Shift(byte clock, byte latch, byte data, byte registers) {
   }
 }
 
-/* Trigger the latch pin pin on the shift registers */
-void Shift::sendLatch(void) {
-  _latch_value = !_latch_value;
-  digitalWrite(_latch_pin, _latch_value);
-}
-
+/*
+ * Set of clear a bit
+ */
 void Shift::SetBit(byte bit, boolean on) 
 {
   uint32_t *data = (uint32_t *)&_data;
@@ -47,6 +44,18 @@ void Shift::SetBit(byte bit, boolean on)
   }
 }
 
+/*
+ * Trigger the latch pin pin on the shift registers, causing the next byte to
+ * go out.
+ */
+void Shift::sendLatch(void) {
+  _latch_value = !_latch_value;
+  digitalWrite(_latch_pin, _latch_value);
+}
+
+/*
+ * Send values to the shift registers
+ */
 void Shift::Write(void) 
 {
   int i;

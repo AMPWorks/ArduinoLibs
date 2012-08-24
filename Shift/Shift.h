@@ -1,3 +1,7 @@
+/*
+ * Control 74HC595 shift registers
+ */
+
 #ifndef SHIFT_H
 #define SHIFT_H
 
