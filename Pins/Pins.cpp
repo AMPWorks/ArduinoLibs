@@ -3,8 +3,9 @@
  */
 #include <Arduino.h>
 
-#include "Pins.h"
 #include "Debug.h"
+#include "Pins.h"
+#include "Shift.h"
 
 /******************************************************************************
  * Generic pin interface
@@ -166,14 +167,21 @@ checkSensors(Pin **pins, byte num_pins, boolean debounce) {
  * Output interface
  *****************************************************************************/
 
-Output::Output(byte pin, byte value)
+
+Output::Output(byte pin, byte value, Shift *shift)
     : Pin(pin, false, PIN_TYPE_OUTPUT)
 {
   _value = value;
   _next_value = value;
-
+  _shift = shift;
   pinMode(pin, OUTPUT);
   digitalWrite(pin, _value);
+}
+
+Output::Output(byte pin, byte value)
+    : Pin(pin, false, PIN_TYPE_OUTPUT)
+{
+  Output(pin, value);
 }
 
 /* Set the new value */
@@ -183,13 +191,16 @@ Output::setValue(byte value)
   _next_value = value;
 }
 
-
 /* Apply the next value */
 void
 Output::trigger(void) 
 {
   _value = _next_value;
-  digitalWrite(pin, _value);
+  if (_shift == NULL) {
+    digitalWrite(pin, _value);
+  } else {
+    _shift->SetBit(pin, _value);
+  }
 }
 
 void triggerOutputs(Pin **pins, byte num_pins) 

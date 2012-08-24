@@ -9,6 +9,8 @@
 
 #include <Arduino.h>
 
+#include "Shift.h"
+
 /* Pin subtypes */
 typedef enum 
 {
@@ -75,12 +77,14 @@ class Output : public Pin
 {
 public:
   Output(byte pin, byte value);
+  Output(byte pin, byte value, Shift *shift);
 
   void setValue(byte value);
   void trigger(void);
   
   byte _value;
   byte _next_value;
+  Shift *_shift;
 };
 
 void triggerOutputs(Pin **pins, byte num_pins);
