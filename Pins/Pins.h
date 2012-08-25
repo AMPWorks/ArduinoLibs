@@ -57,7 +57,7 @@ public:
   unsigned int curr_state;
 
 private:
-  void init( boolean _pull_up, pin_action_t _action, void *_action_arg);
+  void init(boolean _pull_up, pin_action_t _action, void *_action_arg);
 
   boolean pull_up;
 
@@ -78,6 +78,7 @@ class Output : public Pin
 public:
   Output(byte pin, byte value);
   Output(byte pin, byte value, Shift *shift);
+  Output(byte pin, byte value, Shift *shift, Sensor *sensor);
 
   void setValue(byte value);
   void trigger(void);
@@ -85,6 +86,7 @@ public:
   byte _value;
   byte _next_value;
   Shift *_shift;
+  Sensor *_sensor;
 };
 
 void triggerOutputs(Pin **pins, byte num_pins);

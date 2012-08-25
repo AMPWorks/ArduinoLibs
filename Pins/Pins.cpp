@@ -1,8 +1,8 @@
 /*
  * Pin interface
  */
-#define DEBUG
-#define DEBUG_VERBOSE 2
+//#define DEBUG
+//#define DEBUG_VERBOSE 2
 
 #include <Arduino.h>
 
@@ -167,10 +167,10 @@ checkSensors(Pin **pins, byte num_pins, boolean debounce) {
  * Output interface
  *****************************************************************************/
 
-
-Output::Output(byte pin, byte value, Shift *shift)
+Output::Output(byte pin, byte value, Shift *shift, Sensor *sensor)
     : Pin(pin, false, PIN_TYPE_OUTPUT)
 {
+  _sensor = sensor;
   _value = value;
   _next_value = value;
   _shift = shift;
@@ -182,10 +182,30 @@ Output::Output(byte pin, byte value, Shift *shift)
   }
 }
 
+Output::Output(byte pin, byte value, Shift *shift)
+    : Pin(pin, false, PIN_TYPE_OUTPUT)
+{
+#if 1
+  _sensor = NULL;
+  _value = value;
+  _next_value = value;
+  _shift = shift;
+  if (_shift == NULL) {
+    pinMode(pin, OUTPUT);
+    digitalWrite(pin, _value);
+  } else {
+    _shift->SetBit(pin, (_value == HIGH ? true : false));
+  }
+#else
+  // XXX - Something is wrong here, this should not cause values to get stuck
+  Output(pin, value, shift, NULL);
+#endif
+}
+
 Output::Output(byte pin, byte value)
     : Pin(pin, false, PIN_TYPE_OUTPUT)
 {
-  Output(pin, value);
+  Output(pin, value, NULL); // XXX: The above problem could be a problem here too
 }
 
 /* Set the new value */
@@ -199,6 +219,8 @@ Output::setValue(byte value)
 void
 Output::trigger(void) 
 {
+  if (_sensor) _next_value = _sensor->curr_state;
+  
   _value = _next_value;
   if (_shift == NULL) {
     digitalWrite(pin, _value);
