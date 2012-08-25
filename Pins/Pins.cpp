@@ -29,11 +29,13 @@ Pin::Pin(byte _pin, boolean _analog)
  * Sensor interface
  *****************************************************************************/
 void
-Sensor::init(boolean _pull_up, pin_action_t _action, void *_action_arg)
+Sensor::init(boolean _pull_up, boolean _reversed,
+             pin_action_t _action, void *_action_arg)
 {
   pull_up = _pull_up;
   action = _action;
   action_arg = _action_arg;
+  reversed = _reversed;
 
   /* Init to defaults */
   curr_state = LOW;
@@ -56,14 +58,21 @@ Sensor::Sensor(byte _pin, boolean _pull_up, boolean _analog,
                pin_action_t _action)
     : Pin(_pin, _analog, PIN_TYPE_SENSOR)
 {
-  init(_pull_up, _action, NULL);
+  init(_pull_up, _pull_up, _action, NULL);
 }
  
 Sensor::Sensor(byte _pin, boolean _pull_up, boolean _analog,
                pin_action_t _action, void *_action_arg)
     : Pin(_pin, _analog, PIN_TYPE_SENSOR)
 {
-  init(_pull_up, _action, _action_arg);
+  init(_pull_up, _pull_up, _action, _action_arg);
+}
+
+Sensor::Sensor(byte _pin, boolean _pull_up, boolean _analog,
+               boolean _reversed, pin_action_t _action, void *_action_arg)
+      : Pin(_pin, _analog, PIN_TYPE_SENSOR)
+{
+  init(_pull_up, _reversed, _action, _action_arg);
 }
 
 /*
@@ -77,7 +86,7 @@ Sensor::read(void)
     curr_state = analogRead(pin);
   } else {
     curr_state = digitalRead(pin);
-    if (pull_up) {
+    if (reversed) {
       /* Pins set to INPUT_PULLUP will register HIGH when off */
       if (curr_state == HIGH) curr_state = LOW;
       else curr_state = HIGH;
@@ -107,7 +116,7 @@ Sensor::debouncedRead(void)
     currentValue = analogRead(pin);
   } else {
     currentValue = digitalRead(pin);
-    if (pull_up) {
+    if (reversed) {
       /* Pins set to INPUT_PULLUP will register HIGH when off */
       if (currentValue == HIGH) currentValue = LOW;
       else currentValue = HIGH;

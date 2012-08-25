@@ -48,6 +48,9 @@ public:
          pin_action_t _action);
   Sensor(byte _pin, boolean _pull_up, boolean _analog,
          pin_action_t _action, void *_action_arg);
+  Sensor(byte _pin, boolean _pull_up, boolean _analog,
+         boolean _reversed, pin_action_t _action, void *_action_arg);
+
   int read(void);
   int debouncedRead(void);
 
@@ -57,9 +60,11 @@ public:
   unsigned int curr_state;
 
 private:
-  void init(boolean _pull_up, pin_action_t _action, void *_action_arg);
+  void init(boolean _pull_up, boolean _reversed,
+            pin_action_t _action, void *_action_arg);
 
   boolean pull_up;
+  boolean reversed;
 
   unsigned int prev_state;
 
