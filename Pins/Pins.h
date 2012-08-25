@@ -82,7 +82,9 @@ public:
 
   void setValue(byte value);
   void trigger(void);
-  
+
+private:
+  void init(byte pin, byte value, Shift *shift, Sensor *sensor);
   byte _value;
   byte _next_value;
   Shift *_shift;
