@@ -57,7 +57,7 @@ public:
   unsigned int curr_state;
 
 private:
-  void init(boolean _pull_up, pin_action_t _action, void *_action_arg);
+  void init( boolean _pull_up, pin_action_t _action, void *_action_arg);
 
   boolean pull_up;
 

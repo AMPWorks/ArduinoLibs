@@ -1,6 +1,9 @@
 /*
  * Pin interface
  */
+#define DEBUG
+#define DEBUG_VERBOSE 2
+
 #include <Arduino.h>
 
 #include "Debug.h"
@@ -15,9 +18,6 @@ Pin::Pin(byte _pin, boolean _analog, pin_type_t _type)
   pin = _pin;
   type = _type;
   analog = _analog;
-  if (!analog) {
-    digitalWrite(pin, LOW);
-  }
 }
 
 Pin::Pin(byte _pin, boolean _analog)
@@ -53,7 +53,7 @@ Sensor::init(boolean _pull_up, pin_action_t _action, void *_action_arg)
 }
 
 Sensor::Sensor(byte _pin, boolean _pull_up, boolean _analog,
-               pin_action_t _action) 
+               pin_action_t _action)
     : Pin(_pin, _analog, PIN_TYPE_SENSOR)
 {
   init(_pull_up, _action, NULL);
@@ -174,8 +174,12 @@ Output::Output(byte pin, byte value, Shift *shift)
   _value = value;
   _next_value = value;
   _shift = shift;
-  pinMode(pin, OUTPUT);
-  digitalWrite(pin, _value);
+  if (_shift == NULL) {
+    pinMode(pin, OUTPUT);
+    digitalWrite(pin, _value);
+  } else {
+    _shift->SetBit(pin, (_value == HIGH ? true : false));
+  }
 }
 
 Output::Output(byte pin, byte value)
@@ -199,7 +203,7 @@ Output::trigger(void)
   if (_shift == NULL) {
     digitalWrite(pin, _value);
   } else {
-    _shift->SetBit(pin, _value);
+    _shift->SetBit(pin, (_value == HIGH ? true : false));
   }
 }
 
