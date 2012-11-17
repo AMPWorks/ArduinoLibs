@@ -2,11 +2,11 @@
 
 ShiftBar::ShiftBar(uint8_t modules, uint16_t *values) 
 {
-  _modules = modules;
+  num_modules = modules;
   _values = values;
 
   /* Initialize to all-off */
-  for (int i = 0; i < (_modules * 3); i++) {
+  for (int i = 0; i < (num_modules * 3); i++) {
     _values[i] = 0;
   }
 
@@ -58,7 +58,7 @@ void ShiftBar::spiSend(int commandmode, int red, int blue, int green) {
 void ShiftBar::update() {
  
   // Write to PWM control registers
-  for (int h = 0; h < _modules; h++) {
+  for (int h = 0; h < num_modules; h++) {
     spiSend(B00,
             _values[h + 0],
             _values[h + 1],
@@ -70,7 +70,7 @@ void ShiftBar::update() {
   delayMicroseconds(15);
   digitalWrite(SHIFTBAR_LATCH_PIN, LOW);
  
-  for (int z = 0; z < _modules; z++) spiSend(B01, 0, 0, 0);
+  for (int z = 0; z < num_modules; z++) spiSend(B01, 0, 0, 0);
 
   delayMicroseconds(15);
   digitalWrite(SHIFTBAR_LATCH_PIN, HIGH); // latch data into registers

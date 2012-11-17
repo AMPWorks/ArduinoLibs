@@ -25,8 +25,9 @@ class ShiftBar
   void set(uint16_t red, uint16_t green, uint16_t blue);
   void update(void);
 
+  uint8_t num_modules;
+
   private:
-  uint8_t _modules;
   uint16_t *_values;
 
   void spiSend(int commandmode, int red, int blue, int green);
