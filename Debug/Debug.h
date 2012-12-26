@@ -15,17 +15,34 @@
 #endif
 
 #ifdef DEBUG_LEVEL
-  #define DEBUG_PRINT(v, x) if (v <= DEBUG_LEVEL) Serial.print(x)
-  #define DEBUG_PRINTLN(v, x) if (v <= DEBUG_LEVEL) Serial.println(x)
-  #define DEBUG_PRINT_HEX(v, x) if (v <= DEBUG_LEVEL) Serial.print(x, HEX)
-  #define DEBUG_WRITE(v, x) if (v <= DEBUG_LEVEL)  Serial.print(x, HEX)
+  extern char close_line;
+
+  #define DEBUG_PRINT(v, x) if (v <= DEBUG_LEVEL) {                     \
+    close_line = true;                                                  \
+    Serial.print(x);                                                    \
+  }
+  #define DEBUG_PRINTLN(v, x) if (v <= DEBUG_LEVEL) {                   \
+    close_line = false;                                                 \
+    Serial.println(x);                                                  \
+  }
+  #define DEBUG_PRINT_HEX(v, x) if (v <= DEBUG_LEVEL) {                 \
+    close_line = true;                                                  \
+    Serial.print(x, HEX);                                               \
+  }
+  #define DEBUG_VALUE(v, x, y) if (v <= DEBUG_LEVEL) {                  \
+    close_line = true;                                                  \
+    Serial.print(x); Serial.print(y);                                   \
+  }
+  #define DEBUG_VALUELN(v, x, y) if (v <= DEBUG_LEVEL) {                \
+    close_line = false;                                                 \
+    Serial.print(x); Serial.println(y);                                 \
+  }
+  #define DEBUG_PRINT_END(x) if (close_line) {                          \
+    close_line = false;                                                 \
+    Serial.println();                                                   \
+  }
+
   #define DEBUG_COMMAND(x) x;
-  #define DEBUG_VALUE(v, x, y) if (v <= DEBUG_LEVEL) {        \
-      Serial.print(x); Serial.print(y);                         \
-    }
-  #define DEBUG_VALUELN(v, x, y) if (v <= DEBUG_LEVEL) {        \
-      Serial.print(x); Serial.println(y);                         \
-    }
 #else
   #define DEBUG_PRINT(v, x)
   #define DEBUG_PRINTLN(v, x)
@@ -34,4 +51,5 @@
   #define DEBUG_COMMAND(x)
   #define DEBUG_VALUE(v, x, y)
   #define DEBUG_VALUELN(v, x, y)
+#define DEBUG_PRINT_END(x)
 #endif
