@@ -4,6 +4,8 @@
 
 #include "RS485Utils.h"
 
+// XXX: Need to figure out how to use non-static function pointers so this
+//      can be a class field.
 SoftwareSerial *serial;
 
 RS485Socket::RS485Socket(byte _recvPin, byte _xmitPin, byte _enablePin) 
@@ -14,6 +16,8 @@ RS485Socket::RS485Socket(byte _recvPin, byte _xmitPin, byte _enablePin)
 
   serial = new SoftwareSerial(recvPin, xmitPin);
   channel = new RS485(serialRead, serialAvailable, serialWrite, RS485_RECV_BUFFER);
+
+  currentMsgID = 0;
 }
 
 
@@ -30,8 +34,8 @@ void RS485Socket::setup()
 
 size_t RS485Socket::serialWrite(const byte what) 
 {
-  Serial.print("write:");
-  Serial.println(what);
+//  Serial.print("write:");
+//  Serial.println(what);
   return serial->write(what);
 }
 
@@ -45,31 +49,51 @@ int RS485Socket::serialAvailable()
   return serial->available();
 }
 
-void RS485Socket::sendMsgTo(byte address, const byte * data, const byte length) 
+
+byte * RS485Socket::initBuffer(byte * data) 
 {
-  // XXX: Add address data
+  return data + sizeof (rs485_socket_hdr_t);
+}
+
+void RS485Socket::sendMsgTo(byte address,
+                            const byte *data,
+                            const byte datalength) 
+{
+  rs485_socket_msg_t *msg =
+    (rs485_socket_msg_t *)(data - sizeof (rs485_socket_hdr_t));
+
+  msg->hdr.msgID = currentMsgID++;
+  msg->hdr.length = datalength + sizeof (rs485_socket_hdr_t);
+  msg->hdr.address = address;
+  msg->hdr.flags = 0;
+
   Serial.print("XMIT:");
   Serial.print(*data);
   Serial.print("-");
-  Serial.println(length);
+  Serial.print(datalength);
+  Serial.print(" ");
+  Serial.println(msg->hdr.length);
 
   digitalWrite(enablePin, HIGH);
-  channel->sendMsg(data, length);
+  channel->sendMsg((byte *)msg, msg->hdr.length);
   digitalWrite(enablePin, LOW);
 }
 
 const byte *RS485Socket::getMsg(byte address) 
 {
   if (channel->update()) {
-//    int datalen = channel->getLength();
-    const byte *data = channel->getData();
+    const rs485_socket_msg_t *msg = (rs485_socket_msg_t *)channel->getData();
 
-    // XXX: Check if message destination matches address
+    Serial.print("RCV:");
+    Serial.println(channel->getLength());
 
-    return data;
-  } else {
-    return NULL;
+//    if (msg->hdr.address == address) {
+      return &msg->data[0];
+//    }
+
   }
+  
+  return NULL;
 }
 
 int RS485Socket::getLength() 
