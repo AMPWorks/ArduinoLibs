@@ -4,7 +4,6 @@
 
 #include "RS485Utils.h"
 
-SoftwareSerial serialglobal(2, 3);
 SoftwareSerial *serial;
 
 RS485Socket::RS485Socket(byte _recvPin, byte _xmitPin, byte _enablePin) 
@@ -14,8 +13,7 @@ RS485Socket::RS485Socket(byte _recvPin, byte _xmitPin, byte _enablePin)
   enablePin = _enablePin;
 
   serial = new SoftwareSerial(recvPin, xmitPin);
-
-  channel = new RS485(serialRead, serialAvailable, serialWrite, 0 /* XXX */ );
+  channel = new RS485(serialRead, serialAvailable, serialWrite, RS485_RECV_BUFFER);
 }
 
 
@@ -72,4 +70,9 @@ const byte *RS485Socket::getMsg(byte address)
   } else {
     return NULL;
   }
+}
+
+int RS485Socket::getLength() 
+{
+  return channel->getLength();
 }

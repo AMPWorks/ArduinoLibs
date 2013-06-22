@@ -6,6 +6,8 @@
 #include <RS485_non_blocking.h>
 #include <SoftwareSerial.h>
 
+#define RS485_RECV_BUFFER 256
+
 class RS485Socket 
 {
   public:
@@ -14,6 +16,7 @@ class RS485Socket
 
   void sendMsgTo(byte address, const byte * data, const byte length);
   const byte *getMsg(byte address);
+  int getLength();
 
   private:
   byte recvPin, xmitPin, enablePin;
