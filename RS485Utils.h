@@ -6,10 +6,10 @@
 #include <RS485_non_blocking.h>
 #include <SoftwareSerial.h>
 
-#define RS485_RECV_BUFFER 256
+#define RS485_RECV_BUFFER 128
 
 typedef struct {
-  byte msgID;
+  byte ID;
   byte length;
   byte address;
   byte flags;
@@ -20,10 +20,15 @@ typedef struct {
   byte               data[];
 } rs485_socket_msg_t;
 
+void printSocketMsg(const rs485_socket_msg_t *msg);
+void printBuffer(const byte *buff, int length);
+
 class RS485Socket 
 {
   public:
   RS485Socket(byte _recvPin, byte _xmitPin, byte _enablePin);
+  RS485Socket(byte _recvPin, byte _xmitPin, byte _enablePin, boolean debug);
+  
   void setup();
   byte * initBuffer(byte * data);
 
@@ -35,11 +40,14 @@ class RS485Socket
   private:
   byte recvPin, xmitPin, enablePin;
   byte currentMsgID;
+  boolean debug;
 
   RS485 *channel;
 
   static size_t serialWrite(const byte what);
+  static size_t serialDebugWrite(const byte what);
   static int serialRead();
+  static int serialDebugRead();
   static int serialAvailable();
 };
 

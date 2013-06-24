@@ -10,16 +10,28 @@ SoftwareSerial *serial;
 
 RS485Socket::RS485Socket(byte _recvPin, byte _xmitPin, byte _enablePin) 
 {
+  RS485Socket(_recvPin, _xmitPin, _enablePin, false);
+}
+
+RS485Socket::RS485Socket(byte _recvPin, byte _xmitPin, byte _enablePin,
+                         boolean _debug) 
+{
   recvPin = _recvPin;
   xmitPin = _xmitPin;
   enablePin = _enablePin;
+  debug = _debug;
 
   serial = new SoftwareSerial(recvPin, xmitPin);
-  channel = new RS485(serialRead, serialAvailable, serialWrite, RS485_RECV_BUFFER);
+  if (debug) {
+    channel = new RS485(serialDebugRead, serialAvailable, serialDebugWrite,
+                        RS485_RECV_BUFFER);
+  } else {
+    channel = new RS485(serialRead, serialAvailable, serialWrite,
+                        RS485_RECV_BUFFER);
+  }
 
   currentMsgID = 0;
 }
-
 
 void RS485Socket::setup() 
 {
@@ -32,16 +44,31 @@ void RS485Socket::setup()
   digitalWrite(enablePin, LOW);
 }
 
-size_t RS485Socket::serialWrite(const byte what) 
+
+size_t RS485Socket::serialWrite(const byte value) 
 {
-//  Serial.print("write:");
-//  Serial.println(what);
-  return serial->write(what);
+  return serial->write(value);
 }
+
+size_t RS485Socket::serialDebugWrite(const byte value) 
+{
+  Serial.print(value, HEX);
+  Serial.print(" ");
+  return serial->write(value);
+}
+
 
 int RS485Socket::serialRead() 
 {
   return serial->read();
+}
+
+int RS485Socket::serialDebugRead() 
+{
+  int value = serial->read();
+  Serial.print(value, HEX);
+  Serial.print(" ");
+  return value;
 }
 
 int RS485Socket::serialAvailable() 
@@ -62,17 +89,15 @@ void RS485Socket::sendMsgTo(byte address,
   rs485_socket_msg_t *msg =
     (rs485_socket_msg_t *)(data - sizeof (rs485_socket_hdr_t));
 
-  msg->hdr.msgID = currentMsgID++;
-  msg->hdr.length = datalength + sizeof (rs485_socket_hdr_t);
+  msg->hdr.ID = currentMsgID++;
+  msg->hdr.length = datalength;
   msg->hdr.address = address;
   msg->hdr.flags = 0;
 
-  Serial.print("XMIT:");
-  Serial.print(*data);
-  Serial.print("-");
-  Serial.print(datalength);
-  Serial.print(" ");
-  Serial.println(msg->hdr.length);
+  if (debug) {
+    Serial.print("XMIT:");
+    printSocketMsg(msg);
+  }
 
   digitalWrite(enablePin, HIGH);
   channel->sendMsg((byte *)msg, msg->hdr.length);
@@ -82,14 +107,18 @@ void RS485Socket::sendMsgTo(byte address,
 const byte *RS485Socket::getMsg(byte address) 
 {
   if (channel->update()) {
+    if (debug) Serial.print("getMsg: ");
+
     const rs485_socket_msg_t *msg = (rs485_socket_msg_t *)channel->getData();
 
-    Serial.print("RCV:");
-    Serial.println(channel->getLength());
+    if (debug) {
+      Serial.print("RECV: ");
+      printSocketMsg(msg);
+    }
 
-//    if (msg->hdr.address == address) {
+    if (msg->hdr.address == address) {
       return &msg->data[0];
-//    }
+    }
 
   }
   
@@ -99,4 +128,27 @@ const byte *RS485Socket::getMsg(byte address)
 int RS485Socket::getLength() 
 {
   return channel->getLength();
+}
+
+void printSocketMsg(const rs485_socket_msg_t *msg) 
+{
+  Serial.print("i:");
+  Serial.print(msg->hdr.ID, HEX);
+  Serial.print(" l:");
+  Serial.print(msg->hdr.length, HEX);
+  Serial.print(" a:");
+  Serial.print(msg->hdr.address, HEX);
+  Serial.print(" f:");
+  Serial.print(msg->hdr.flags, HEX);
+  Serial.print(" ");
+  printBuffer(msg->data, msg->hdr.length);
+  Serial.println("");
+}
+
+void printBuffer(const byte *buff, int length) 
+{
+  for (int b = 0; b < length; b++) {
+    Serial.print(buff[b], HEX);
+    Serial.print(" ");
+  }
 }
