@@ -119,6 +119,16 @@ const byte *RS485Socket::getMsg(byte address, unsigned int *retlen)
 
     const rs485_socket_msg_t *msg = (rs485_socket_msg_t *)channel->getData();
 
+    if (debug &&
+        (getLength() < sizeof (rs485_socket_hdr_t))) {
+      Serial.println("ERROR-length < header");
+    }
+
+    if (debug &&
+        (getLength() < (sizeof (rs485_socket_hdr_t) + msg->hdr.length))) {
+      Serial.println("ERROR-length < header + data");
+    }
+
     if (debug) {
       Serial.print(" RECV: ");
       printSocketMsg(msg);
