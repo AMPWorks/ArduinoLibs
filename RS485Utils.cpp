@@ -108,8 +108,9 @@ void RS485Socket::sendMsgTo(byte address,
   digitalWrite(enablePin, LOW);
 }
 
-const byte *RS485Socket::getMsg(byte address) 
+const byte *RS485Socket::getMsg(byte address, unsigned int *retlen) 
 {
+  if (debug) Serial.print(".");
   if (channel->update()) {
     if (debug) {
       Serial.print("getMsg:");
@@ -124,11 +125,13 @@ const byte *RS485Socket::getMsg(byte address)
     }
 
     if (msg->hdr.address == address) {
+      *retlen = msg->hdr.length;
       return &msg->data[0];
     }
 
   }
-  
+
+  *retlen = 0;
   return NULL;
 }
 
