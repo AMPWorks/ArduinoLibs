@@ -6,7 +6,7 @@
 #include <RS485_non_blocking.h>
 #include <SoftwareSerial.h>
 
-#define RS485_RECV_BUFFER 128
+#define RS485_RECV_BUFFER 255
 
 typedef struct {
   byte ID;

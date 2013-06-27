@@ -89,6 +89,8 @@ void RS485Socket::sendMsgTo(byte address,
   rs485_socket_msg_t *msg =
     (rs485_socket_msg_t *)(data - sizeof (rs485_socket_hdr_t));
 
+  unsigned int msg_len = sizeof (rs485_socket_hdr_t) + datalength;
+
   msg->hdr.ID = currentMsgID++;
   msg->hdr.length = datalength;
   msg->hdr.address = address;
@@ -96,23 +98,28 @@ void RS485Socket::sendMsgTo(byte address,
 
   if (debug) {
     Serial.print("XMIT:");
+    Serial.print(msg_len);
+    Serial.print(" ");
     printSocketMsg(msg);
   }
 
   digitalWrite(enablePin, HIGH);
-  channel->sendMsg((byte *)msg, msg->hdr.length);
+  channel->sendMsg((byte *)msg, msg_len);
   digitalWrite(enablePin, LOW);
 }
 
 const byte *RS485Socket::getMsg(byte address) 
 {
   if (channel->update()) {
-    if (debug) Serial.print("getMsg: ");
+    if (debug) {
+      Serial.print("getMsg:");
+      Serial.print(getLength());
+    }
 
     const rs485_socket_msg_t *msg = (rs485_socket_msg_t *)channel->getData();
 
     if (debug) {
-      Serial.print("RECV: ");
+      Serial.print(" RECV: ");
       printSocketMsg(msg);
     }
 
