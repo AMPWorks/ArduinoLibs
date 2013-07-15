@@ -33,6 +33,10 @@
     close_line = true;                                                  \
     Serial.print(x); Serial.print(y);                                   \
   }
+  #define DEBUG_HEXVAL(v, x, y) if (v <= DEBUG_LEVEL) {                 \
+    close_line = true;                                                  \
+    Serial.print(x); Serial.print(y, HEX);                              \
+  }
   #define DEBUG_VALUELN(v, x, y) if (v <= DEBUG_LEVEL) {                \
     close_line = false;                                                 \
     Serial.print(x); Serial.println(y);                                 \
@@ -42,6 +46,8 @@
     Serial.println();                                                   \
   }
 
+  #define DEBUG_ERR(x) DEBUG_PRINTLN(DEBUG_ERROR, x);
+
   #define DEBUG_COMMAND(x) x;
 #else
   #define DEBUG_PRINT(v, x)
@@ -50,6 +56,8 @@
   #define DEBUG_WRITE(v, x)
   #define DEBUG_COMMAND(x)
   #define DEBUG_VALUE(v, x, y)
+  #define DEBUG_HEXVAL(v, x, y)
   #define DEBUG_VALUELN(v, x, y)
-#define DEBUG_PRINT_END(x)
+  #define DEBUG_PRINT_END(x)
+  #define DEBUG_ERR(x)
 #endif
