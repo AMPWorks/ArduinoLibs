@@ -41,7 +41,7 @@
     close_line = false;                                                 \
     Serial.print(x); Serial.println(y);                                 \
   }
-  #define DEBUG_PRINT_END(x) if (close_line) {                          \
+  #define DEBUG_PRINT_END() if (close_line) {                          \
     close_line = false;                                                 \
     Serial.println();                                                   \
   }
@@ -58,6 +58,6 @@
   #define DEBUG_VALUE(v, x, y)
   #define DEBUG_HEXVAL(v, x, y)
   #define DEBUG_VALUELN(v, x, y)
-  #define DEBUG_PRINT_END(x)
+  #define DEBUG_PRINT_END()
   #define DEBUG_ERR(x)
 #endif
