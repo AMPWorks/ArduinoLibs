@@ -66,6 +66,11 @@ EEPROM_crc(uint8_t const data[], int datalen)
  * Returns the address of the byte after the last one written
  */
 int EEPROM_safe_write(int location, uint8_t *data, uint8_t datalen) {
+
+  if (location + datalen + EEPROM_WRAPPER_SIZE >= EEPROM_MAX_ADDRESS) {
+    DEBUG_ERR(F("EEPROM_safe_write: data exceeds max address"));
+    return -1;
+  }
   
   crc_t crc = EEPROM_crc(data, datalen);
 
@@ -91,16 +96,25 @@ int EEPROM_safe_read(int location, uint8_t *buff, int bufflen)
 {
   uint8_t val;
 
+  if (location + EEPROM_WRAPPER_SIZE >= EEPROM_MAX_ADDRESS) {
+    DEBUG_ERR(F("EEPROM_safe_read: location exceeds max address"));
+    return -1;
+  }
+
   val = EEPROM.read(location++);
   if (val != EEPROM_START_BYTE) {
     DEBUG_ERR(F("EEPROM_safe_read: first byte not START"));
-    return -1;
+    return -2;
   }
 
   uint8_t datalen = EEPROM.read(location++);
   if (datalen > bufflen) {
     DEBUG_ERR(F("EEPROM_safe_read: bufflen less than datalen"));
-    return -2;
+    return -3;
+  }
+  if (location + datalen + EEPROM_WRAPPER_SIZE >= EEPROM_MAX_ADDRESS) {
+    DEBUG_ERR(F("EEPROM_safe_read: data exceeds max address"));
+    return -4;
   }
 
   for (uint8_t i = 0; i < datalen; i++) {
@@ -110,7 +124,7 @@ int EEPROM_safe_read(int location, uint8_t *buff, int bufflen)
   crc_t crc = EEPROM.read(location++);
   if (crc != EEPROM_crc(buff, datalen)) {
     DEBUG_ERR(F("EEPROM_safe_read: CRC didn't match"));
-    return -1;
+    return -5;
   }
   
   return datalen;
