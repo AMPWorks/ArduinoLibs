@@ -48,7 +48,9 @@
 
   #define DEBUG_ERR(x) DEBUG_PRINTLN(DEBUG_ERROR, x);
 
-  #define DEBUG_COMMAND(x) x;
+#define DEBUG_COMMAND(v, x) if (v <= DEBUG_LEVEL) {     \
+    x; \
+  }
 #else
   #define DEBUG_PRINT(v, x)
   #define DEBUG_PRINTLN(v, x)
