@@ -9,6 +9,48 @@
 //#define DEBUG_LEVEL DEBUG_HIGH
 #include "Debug.h"
 
+#include "PixelUtil.h"
+
+PixelUtil::PixelUtil() 
+{
+
+}
+
+PixelUtil::PixelUtil(uint16_t numPixels, uint8_t dataPin, uint8_t clockPin,
+                     uint8_t order) 
+{
+  pixels = Adafruit_WS2801(numPixels, dataPin, clockPin, order);
+  pixels.begin();
+  pixels.show();
+}
+
+uint16_t PixelUtil::numPixels() 
+{
+  return pixels.numPixels();
+}
+
+/* Construct a 32bit value from 8bit RGB values */
+uint32_t PixelUtil::pixelColor(byte r, byte g, byte b)
+{
+  uint32_t c;
+  c = r;
+  c <<= 8;
+  c |= g;
+  c <<= 8;
+  c |= b;
+  return c;
+}
+
+void PixelUtil::setPixelRGB(uint16_t led, byte r, byte g, byte b) 
+{
+  pixels.setPixelColor(led, pixel_color(r, g, b));
+}
+
+void PixelUtil::update() 
+{
+  pixels.show();
+}
+
 /* Construct a 32bit value from 8bit RGB values */
 uint32_t pixel_color(byte r, byte g, byte b)
 {
@@ -37,7 +79,7 @@ uint32_t pixel_wheel(byte WheelPos)
 }
 
 void pixel_rainbow(Adafruit_WS2801 strip, uint8_t wait) {
-  int i, j;
+  uint16_t i, j;
    
   for (j=0; j < 256; j++) {     // 3 cycles of all 256 colors in the wheel
     for (i=0; i < strip.numPixels(); i++) {
@@ -51,7 +93,7 @@ void pixel_rainbow(Adafruit_WS2801 strip, uint8_t wait) {
 // Slightly different, this one makes the rainbow wheel equally distributed 
 // along the chain
 void rainbowCycle(Adafruit_WS2801 strip, uint8_t wait) {
-  int i, j;
+  uint16_t i, j;
   
   for (j=0; j < 256 * 5; j++) {     // 5 cycles of all 25 colors in the wheel
     for (i=0; i < strip.numPixels(); i++) {
@@ -69,7 +111,7 @@ void rainbowCycle(Adafruit_WS2801 strip, uint8_t wait) {
 // fill the dots one after the other with said color
 // good for testing purposes
 void colorWipe(Adafruit_WS2801 strip, uint32_t c, uint8_t wait) {
-  int i;
+  uint16_t i;
   
   for (i=0; i < strip.numPixels(); i++) {
       strip.setPixelColor(i, c);
