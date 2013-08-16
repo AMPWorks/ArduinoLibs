@@ -110,7 +110,7 @@ void RS485Socket::sendMsgTo(byte address,
 
 const byte *RS485Socket::getMsg(byte address, unsigned int *retlen) 
 {
-  if (debug) Serial.print(".");
+//  if (debug) Serial.print(".");
   if (channel->update()) {
     if (debug) {
       Serial.print("getMsg:");
