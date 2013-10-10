@@ -25,7 +25,7 @@
     close_line = false;                                                 \
     Serial.println(x);                                                  \
   }
-  #define DEBUG_PRINT_HEX(v, x) if (v <= DEBUG_LEVEL) {                 \
+  #define DEBUG_HEX(v, x) if (v <= DEBUG_LEVEL) {                 \
     close_line = true;                                                  \
     Serial.print(x, HEX);                                               \
   }

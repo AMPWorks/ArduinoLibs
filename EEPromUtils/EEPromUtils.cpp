@@ -125,8 +125,10 @@ int EEPROM_safe_read(int location, uint8_t *buff, int bufflen)
     return -4;
   }
 
+  DEBUG_PRINT(DEBUG_HIGH, " data=");
   for (uint8_t i = 0; i < datalen; i++) {
     buff[i] = EEPROM.read(location++);
+    DEBUG_HEXVAL(DEBUG_HIGH, " ", buff[i]);
   }
 
   crc_t crc = EEPROM.read(location++);
