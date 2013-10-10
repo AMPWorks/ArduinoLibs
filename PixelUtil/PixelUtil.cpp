@@ -51,11 +51,99 @@ void PixelUtil::setPixelRGB(uint16_t led, uint32_t color)
   pixels.setPixelColor(led, color);
 }
 
-
 void PixelUtil::update() 
 {
   pixels.show();
 }
+
+/* Loop through the given pattern */
+void PixelUtil::patternLoop(byte pattern[][3], int pattern_size, int periodms) {
+  static unsigned long next_time = millis();
+  static byte current = 0;
+
+  if (millis() > next_time) {
+    setPixelRGB(current % numPixels(), 0, 0, 0);
+    current++;
+    next_time += periodms;
+  }
+
+  for (byte i = 0; i <  pattern_size; i++) {
+    setPixelRGB((current + i) % numPixels(),
+		pattern[i][0], pattern[i][1], pattern[i][2]);
+  }
+}
+
+void PixelUtil::patternOne(int periodms) {
+  static byte pattern[9][3] = {
+          {64,  0,   128},
+	  {128, 0,   64 },
+	  {255, 0,   0  },
+	  {128, 64,  0  },
+	  {64,  128, 0  },
+	  {0,   255, 0  },
+	  {0,   128, 64 },
+          {0,   64,  128},
+          {0,   0,   255},
+        };
+  patternLoop(pattern, 9, periodms);
+}
+
+void PixelUtil::patternRed(int periodms) {
+  static byte pattern[7][3] = {
+    {32,  0, 0},
+    {64,  0, 0},
+    {128, 0 ,0},
+    {255, 0, 0},
+    {128, 0 ,0},
+    {64,  0, 0},
+    {32,  0, 0},
+  };
+  patternLoop(pattern, 7, periodms);
+}
+
+/*******************************************************************************
+ * RGB class
+ ******************************************************************************/
+RGB::RGB() {
+  setColor(0, 0, 0);
+}
+
+RGB::RGB(byte r, byte g, byte b) {
+  setColor(r, g, b);
+}
+
+void RGB::setColor(byte r, byte g, byte b) {
+  c.argb[RED] = r;
+  c.argb[GREEN] = g;
+  c.argb[BLUE] = b;
+}
+
+void RGB::incrColor(int r, int g, int b) {
+  if ((r > 0) && (255 - r < c.argb[RED] )) c.argb[RED] = 255;
+  else if ((r < 0) && (0 - r > c.argb[RED])) c.argb[RED] = 0;
+  else c.argb[RED] += r;
+
+  if ((g > 0) && (255 - g < c.argb[GREEN] )) c.argb[GREEN] = 255;
+  else if ((g < 0) && (0 - g > c.argb[GREEN])) c.argb[GREEN] = 0;
+  else c.argb[GREEN] += g;
+
+  if ((b > 0) && (255 - b < c.argb[BLUE] )) c.argb[BLUE] = 255;
+  else if ((b < 0) && (0 - b > c.argb[BLUE])) c.argb[BLUE] = 0;
+  else c.argb[BLUE] += b;
+}
+
+byte RGB::red() {
+  return c.argb[RED];
+}
+
+byte RGB::green() {
+  return c.argb[GREEN];
+}
+
+byte RGB::blue() {
+  return c.argb[BLUE];
+}
+
 
 /* Construct a 32bit value from 8bit RGB values */
 uint32_t pixel_color(byte r, byte g, byte b)
