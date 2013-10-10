@@ -16,6 +16,7 @@ class PixelUtil
 
   uint16_t numPixels();
   void setPixelRGB(uint16_t led, byte r, byte g, byte b);
+  void setPixelRGB(uint16_t led, uint32_t color);
 
   void update();
 
@@ -24,5 +25,7 @@ class PixelUtil
 };
 
 uint32_t pixel_color(byte r, byte g, byte b);
-  
+uint32_t pixel_wheel(byte WheelPos);
+uint32_t pixel_wheel(byte WheelPos, byte max);
+
 #endif

@@ -41,10 +41,16 @@ uint32_t PixelUtil::pixelColor(byte r, byte g, byte b)
   return c;
 }
 
-void PixelUtil::setPixelRGB(uint16_t led, byte r, byte g, byte b) 
+void PixelUtil::setPixelRGB(uint16_t led, byte r, byte g, byte b)
 {
   pixels.setPixelColor(led, pixel_color(r, g, b));
 }
+
+void PixelUtil::setPixelRGB(uint16_t led, uint32_t color)
+{
+  pixels.setPixelColor(led, color);
+}
+
 
 void PixelUtil::update() 
 {
@@ -65,8 +71,10 @@ uint32_t pixel_color(byte r, byte g, byte b)
 
 //Input a value 0 to 255 to get a color value.
 //The colours are a transition r - g -b - back to r
-uint32_t pixel_wheel(byte WheelPos)
+uint32_t pixel_wheel(byte WheelPos, byte max)
 {
+  // XXX - max should be scaling factor
+
   if (WheelPos < 85) {
    return pixel_color(WheelPos * 3, 255 - WheelPos * 3, 0);
   } else if (WheelPos < 170) {
@@ -76,6 +84,10 @@ uint32_t pixel_wheel(byte WheelPos)
    WheelPos -= 170; 
    return pixel_color(0, WheelPos * 3, 255 - WheelPos * 3);
   }
+}
+
+uint32_t pixel_wheel(byte WheelPos) {
+  return pixel_wheel(WheelPos, 255);
 }
 
 void pixel_rainbow(Adafruit_WS2801 strip, uint8_t wait) {
