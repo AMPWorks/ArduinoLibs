@@ -24,6 +24,8 @@ class PixelUtil
   void patternLoop(byte pattern[][3], int patten_size, int periodms);
   void patternOne(int periodms);
   void patternRed(int periodms);
+  void patternGreen(int periodms);
+  void patternBlue(int periodms);
 
   private:
   Adafruit_WS2801 pixels;

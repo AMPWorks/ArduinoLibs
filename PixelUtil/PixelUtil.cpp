@@ -101,6 +101,32 @@ void PixelUtil::patternRed(int periodms) {
   patternLoop(pattern, 7, periodms);
 }
 
+void PixelUtil::patternGreen(int periodms) {
+  static byte pattern[7][3] = {
+    {0, 32,  0},
+    {0, 64,  0},
+    {0, 128, 0},
+    {0, 255, 0},
+    {0, 128, 0},
+    {0, 64,  0},
+    {0, 32,  0},
+  };
+  patternLoop(pattern, 7, periodms);
+}
+
+void PixelUtil::patternBlue(int periodms) {
+  static byte pattern[7][3] = {
+    {0, 0, 32},
+    {0, 0, 64},
+    {0, 0, 128},
+    {0, 0, 255},
+    {0, 0, 128},
+    {0, 0, 64},
+    {0, 0, 32},
+  };
+  patternLoop(pattern, 7, periodms);
+}
+
 /*******************************************************************************
  * RGB class
  ******************************************************************************/
