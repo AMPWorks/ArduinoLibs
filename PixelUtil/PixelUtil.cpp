@@ -16,6 +16,7 @@ PixelUtil::PixelUtil()
 
 }
 
+// WARNING: PixulUtil initialization *must* be after the Serial.init()
 PixelUtil::PixelUtil(uint16_t numPixels, uint8_t dataPin, uint8_t clockPin,
                      uint8_t order) 
 {
@@ -65,11 +66,11 @@ void PixelUtil::patternLoop(byte pattern[][3], int pattern_size, int periodms) {
     setPixelRGB(current % numPixels(), 0, 0, 0);
     current++;
     next_time += periodms;
-  }
 
-  for (byte i = 0; i <  pattern_size; i++) {
-    setPixelRGB((current + i) % numPixels(),
-		pattern[i][0], pattern[i][1], pattern[i][2]);
+    for (byte i = 0; i <  pattern_size; i++) {
+      setPixelRGB((current + i) % numPixels(),
+		  pattern[i][0], pattern[i][1], pattern[i][2]);
+    }
   }
 }
 
