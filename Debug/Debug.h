@@ -19,7 +19,7 @@
 
   #define DEBUG_PRINT(v, x) if (v <= DEBUG_LEVEL) {                     \
     close_line = true;                                                  \
-    Serial.print(x);                                                    \
+    Serial.print(x);							\
   }
   #define DEBUG_PRINTLN(v, x) if (v <= DEBUG_LEVEL) {                   \
     close_line = false;                                                 \

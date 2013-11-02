@@ -4,6 +4,39 @@
 #include "SPI.h"
 #include "Adafruit_WS2801.h"
 
+typedef union {
+#define RED 2
+#define GREEN 1
+#define BLUE 0
+  byte argb[4];
+  uint32_t color;
+} color_t;
+
+class RGB {
+ public:
+  RGB();
+  RGB(byte r, byte g, byte b);
+
+  void setColor(byte r, byte g, byte b);
+  void setColor(uint32_t c);
+  void setNext(byte r, byte g, byte b);
+
+  void incrColor(int r, int g, int b);
+  void incrNext(int r, int g, int b);
+
+  byte red();
+  byte green();
+  byte blue();
+  uint32_t color();
+
+  void update();
+
+  uint16_t pixel;
+
+ private:
+  color_t c, next;
+};
+
 class PixelUtil 
 {
   public:
@@ -18,6 +51,7 @@ class PixelUtil
   uint16_t numPixels();
   void setPixelRGB(uint16_t led, byte r, byte g, byte b);
   void setPixelRGB(uint16_t led, uint32_t color);
+  void setPixelRGB(RGB *rgb);
 
   void update();
 
@@ -32,28 +66,6 @@ class PixelUtil
   Adafruit_WS2801 pixels;
 };
 
-class RGB {
- public:
-  RGB();
-  RGB(byte r, byte g, byte b);
-
-  void setColor(byte r, byte g, byte b);
-  void incrColor(int r, int g, int b);
-  byte red();
-  byte green();
-  byte blue();
-
-  uint16_t pixel;
-
- private:
-#define RED 1
-#define GREEN 2
-#define BLUE 3
-  union {
-    byte argb[4];
-    uint32_t color;
-  } c;
-};
 
 uint32_t pixel_color(byte r, byte g, byte b);
 uint32_t pixel_wheel(byte WheelPos);
