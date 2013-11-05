@@ -8,6 +8,7 @@ typedef union {
 #define RED 2
 #define GREEN 1
 #define BLUE 0
+#define UNUSED 3
   byte argb[4];
   uint32_t color;
 } color_t;
@@ -29,12 +30,13 @@ class RGB {
   byte blue();
   uint32_t color();
 
-  void update();
+  //void update();
 
   uint16_t pixel;
 
  private:
-  color_t c, next;
+  color_t c;
+  //color_t next;
 };
 
 class PixelUtil 

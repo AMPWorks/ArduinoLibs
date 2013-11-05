@@ -147,6 +147,7 @@ void RGB::setColor(byte r, byte g, byte b) {
   c.argb[RED] = r;
   c.argb[GREEN] = g;
   c.argb[BLUE] = b;
+  c.argb[UNUSED] = 0;
 }
 
 void RGB::setColor(uint32_t color) {
@@ -183,9 +184,9 @@ uint32_t RGB::color() {
   return c.color;
 }
 
-void RGB::update() {
-  c.color = next.color;
-}
+//void RGB::update() {
+  //  c.color = next.color;
+//}
 
 
 /* Construct a 32bit value from 8bit RGB values */
