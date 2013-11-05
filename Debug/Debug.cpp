@@ -25,3 +25,22 @@ void debug_err_state(int code) {
     delay(2000);
   }
 }
+
+/* Print the memory pointers and free space */
+void debug_print_memory() {
+  extern int __heap_start, *__brkval;
+  int v;
+
+  v = (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval);
+
+  Serial.print("BRKVAL: ");
+  Serial.print((int)__brkval);
+  Serial.print(" HEAP_START: ");
+  Serial.print(__heap_start);
+  Serial.print(" &HEAP_START: ");
+  Serial.print((int)&__heap_start);
+  Serial.print(" &V: ");
+  Serial.print((int)&v);
+  Serial.print(" FREE: ");
+  Serial.println(v);
+}

@@ -53,6 +53,10 @@
   }
 
   #define DEBUG_ERR_STATE(x) debug_err_state(x);
+
+  #define DEBUG_MEMORY(v)  if (v <= DEBUG_LEVEL) {     \
+    debug_print_memory(); \
+  }
 #else
   #define DEBUG_PRINT(v, x)
   #define DEBUG_PRINTLN(v, x)
@@ -65,6 +69,7 @@
   #define DEBUG_PRINT_END()
   #define DEBUG_ERR(x)
   #define DEBUG_ERR_STATE(x)
+  #define DEBUG_MEMORY(v)
 #endif
 
 /* Error codes */
@@ -72,3 +77,6 @@
 
 /* Flash an error code */
 void debug_err_state(int code);
+
+/* Print memory pointers and free space */
+void debug_print_memory();
