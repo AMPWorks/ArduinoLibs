@@ -70,9 +70,9 @@ class MPR121 {
  public:
   MPR121(byte irqpin, boolean *touchStates, boolean interrupt);
   void readTouchInputs();
+  void setThreshold(byte sensor, byte trigger, byte release);
 
   boolean triggered;
-
  private:
   boolean useInterrupt;
   byte irqpin;

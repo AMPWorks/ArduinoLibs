@@ -75,14 +75,14 @@ void MPR121::setup(void) {
   set_register(0x5A, FDL_F, 0x02);
   
   // Section C - Sets touch and release thresholds for each electrode
-  set_register(0x5A, ELE0_T, 10); //TOU_THRESH);
-  set_register(0x5A, ELE0_R, 10); //REL_THRESH);
+  set_register(0x5A, ELE0_T, TOU_THRESH);
+  set_register(0x5A, ELE0_R, REL_THRESH);
  
   set_register(0x5A, ELE1_T, TOU_THRESH);
   set_register(0x5A, ELE1_R, REL_THRESH);
   
-  set_register(0x5A, ELE2_T, 10); //TOU_THRESH);
-  set_register(0x5A, ELE2_R, 20); //REL_THRESH);
+  set_register(0x5A, ELE2_T, TOU_THRESH);
+  set_register(0x5A, ELE2_R, REL_THRESH);
   
   set_register(0x5A, ELE3_T, TOU_THRESH);
   set_register(0x5A, ELE3_R, REL_THRESH);
@@ -132,7 +132,29 @@ void MPR121::setup(void) {
   */
   
   set_register(0x5A, ELE_CFG, 0x0C);
-  
+}
+
+void MPR121::setThreshold(byte sensor, byte trigger, byte release) {
+  byte trig;
+  byte rel;
+  switch (sensor) {
+  case 0: trig = ELE0_T; rel = ELE0_R; break;
+  case 1: trig = ELE1_T; rel = ELE1_R; break;
+  case 2: trig = ELE2_T; rel = ELE2_R; break;
+  case 3: trig = ELE3_T; rel = ELE3_R; break;
+  case 4: trig = ELE4_T; rel = ELE4_R; break;
+  case 5: trig = ELE5_T; rel = ELE5_R; break;
+  case 6: trig = ELE6_T; rel = ELE6_R; break;
+  case 7: trig = ELE7_T; rel = ELE7_R; break;
+  case 8: trig = ELE8_T; rel = ELE8_R; break;
+  case 9: trig = ELE9_T; rel = ELE9_R; break;
+  case 10: trig = ELE10_T; rel = ELE10_R; break;
+  case 11: trig = ELE11_T; rel = ELE11_R; break;
+  case 12: trig = ELE12_T; rel = ELE12_R; break;
+  }
+
+  set_register(0x5A, trig, trigger);
+  set_register(0x5A, rel, release);
 }
 
 void MPR121::readTouchInputs() {
