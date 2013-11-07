@@ -68,15 +68,52 @@
 
 class MPR121 {
  public:
-  MPR121(byte irqpin);
-  void readTouchInputs(boolean *touchStates);
+  MPR121(byte irqpin, boolean *touchStates, boolean interrupt);
+  void readTouchInputs();
+
+  boolean triggered;
 
  private:
+  boolean useInterrupt;
   byte irqpin;
+  boolean *touchStates;
 
   void setup();
-  boolean checkInterrupt();
+  void checkInterrupt();
   void set_register(int address, unsigned char r, unsigned char v);
 };
+
+/*
+ * Check the board type in order to determine which pins match which interrupt
+ */
+#if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
+#define INTERUPT_0_PIN 2
+#define INTERUPT_1_PIN 3
+#define INTERUPT_2_PIN -1
+#define INTERUPT_3_PIN -1
+#define INTERUPT_4_PIN -1
+#define INTERUPT_5_PIN -1
+#elif defined(__AVR_ATmega328P__)
+#define INTERUPT_0_PIN 2
+#define INTERUPT_1_PIN 3
+#define INTERUPT_2_PIN 21
+#define INTERUPT_3_PIN 20
+#define INTERUPT_4_PIN 19
+#define INTERUPT_5_PIN 18
+#elif defined(__AVR_ATmega328P__)
+#define INTERUPT_0_PIN 3
+#define INTERUPT_1_PIN 2
+#define INTERUPT_2_PIN 0
+#define INTERUPT_3_PIN 1
+#define INTERUPT_4_PIN 7
+#define INTERUPT_5_PIN -1
+#else
+#define INTERUPT_0_PIN -1
+#define INTERUPT_1_PIN -1
+#define INTERUPT_2_PIN -1
+#define INTERUPT_3_PIN -1
+#define INTERUPT_4_PIN -1
+#define INTERUPT_5_PIN -1
+#endif
 
 #endif
