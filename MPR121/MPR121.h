@@ -73,8 +73,8 @@ class MPR121 {
   void setThreshold(byte sensor, byte trigger, byte release);
 
   boolean triggered;
- private:
   boolean useInterrupt;
+ private:
   byte irqpin;
   boolean *touchStates;
 

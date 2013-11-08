@@ -150,7 +150,6 @@ void MPR121::setThreshold(byte sensor, byte trigger, byte release) {
   case 9: trig = ELE9_T; rel = ELE9_R; break;
   case 10: trig = ELE10_T; rel = ELE10_R; break;
   case 11: trig = ELE11_T; rel = ELE11_R; break;
-  case 12: trig = ELE12_T; rel = ELE12_R; break;
   }
 
   set_register(0x5A, trig, trigger);
