@@ -19,6 +19,13 @@ void irqTriggered1() {
   if (cap[1] != NULL) cap[1]->triggered = true;
 }
 
+MPR121::MPR121() {
+  triggered = false;
+  useInterrupt = false;
+  irqpin = false;
+  touchStates = NULL;
+}
+
 /* Initializer */
 MPR121::MPR121(byte _irqpin, boolean *_touchStates, boolean _useInterrupt) {
   triggered = true;
