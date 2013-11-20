@@ -55,6 +55,8 @@ class PixelUtil
   void setPixelRGB(uint16_t led, uint32_t color);
   void setPixelRGB(RGB *rgb);
 
+  uint32_t getColor(uint16_t led);
+
   void update();
 
   /* Loop the pixels through a pattern */
@@ -70,6 +72,9 @@ class PixelUtil
 
 
 uint32_t pixel_color(byte r, byte g, byte b);
+byte pixel_red(uint32_t color);
+byte pixel_green(uint32_t color);
+byte pixel_blue(uint32_t color);
 uint32_t pixel_wheel(byte WheelPos);
 uint32_t pixel_wheel(byte WheelPos, byte max);
 

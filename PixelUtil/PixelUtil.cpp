@@ -56,6 +56,10 @@ void PixelUtil::setPixelRGB(RGB *rgb) {
   pixels.setPixelColor(rgb->pixel, rgb->color());
 }
 
+uint32_t PixelUtil::getColor(uint16_t led) {
+  return pixels.getPixelColor(led);
+}
+
 void PixelUtil::update() 
 {
   pixels.show();
@@ -199,6 +203,18 @@ uint32_t pixel_color(byte r, byte g, byte b)
   c <<= 8;
   c |= b;
   return c;
+}
+
+byte pixel_red(uint32_t color) {
+  return ((color & 0x00FF0000) >> 16);
+}
+
+byte pixel_green(uint32_t color) {
+  return ((color & 0x0000FF00) >> 8);
+}
+
+byte pixel_blue(uint32_t color) {
+  return (color & 0x000000FF);
 }
 
 //Input a value 0 to 255 to get a color value.
