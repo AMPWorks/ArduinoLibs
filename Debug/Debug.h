@@ -9,6 +9,7 @@
 #define DEBUG_LOW   1
 #define DEBUG_MID   2
 #define DEBUG_HIGH  3
+#define DEBUG_TRACE 4
 
 #ifdef DEBUG /* Compatibility with earlier Debug.h syntax */
   #define DEBUG_LEVEL DEBUG_VERBOSE 
@@ -36,6 +37,10 @@
   #define DEBUG_HEXVAL(v, x, y) if (v <= DEBUG_LEVEL) {                 \
     close_line = true;                                                  \
     Serial.print(x); Serial.print(y, HEX);                              \
+  }
+  #define DEBUG_HEXVALLN(v, x, y) if (v <= DEBUG_LEVEL) {                 \
+    close_line = false;                                                  \
+    Serial.print(x); Serial.println(y, HEX);                              \
   }
   #define DEBUG_VALUELN(v, x, y) if (v <= DEBUG_LEVEL) {                \
     close_line = false;                                                 \
