@@ -23,18 +23,21 @@ MPR121::MPR121() {
   triggered = false;
   useInterrupt = false;
   irqpin = false;
-  touchStates = NULL;
 }
 
 /*
  * IMPORTANT NODE: Wire.begin() must be called before MPR121 initialization
  */
-MPR121::MPR121(byte _irqpin, boolean *_touchStates, boolean _useInterrupt) {
+MPR121::MPR121(byte _irqpin, boolean _useInterrupt) {
   triggered = true;
 
   irqpin = _irqpin;
   useInterrupt = _useInterrupt;
-  touchStates = _touchStates;
+
+  for (int i = 0; i < MAX_SENSORS; i++) {
+    touchStates[i] = false;
+    prevStates[i] = false;
+  }
 
   pinMode(irqpin, INPUT);
   digitalWrite(irqpin, HIGH); //enable pullup resistor XXX: Is this needed with interrupts?
@@ -170,9 +173,37 @@ void MPR121::setThreshold(byte sensor, byte trigger, byte release) {
   set_register(0x5A, rel, release);
 }
 
+/* Return the value of the sensor from the most recent check */
+boolean MPR121::touched(byte sensor) {
+  return touchStates[sensor];
+}
+
+/* Return the value of the sensor from the previous check */
+boolean MPR121::previous(byte sensor) {
+  return prevStates[sensor];
+}
+
+/* Check if the sensor value changed from the previous check */
+boolean MPR121::changed(byte sensor) {
+  return (touchStates[sensor] != prevStates[sensor]);
+}
+
+/*
+ * Check if the IRQ pin has been triggered and if so query the chip for the
+ * current state of the sensors.
+ */
 boolean MPR121::readTouchInputs() {
   if (!useInterrupt) {
     checkInterrupt();
+  }
+
+  /*
+   *  The prevStates are used to determine if values have changed since the
+   * previous call and so should be updated regardless of whether IRQ was
+   * triggered.
+   */
+  for (int i = 0; i < MAX_SENSORS; i++) {
+    prevStates[i] = touchStates[i];
   }
 
   if (triggered) {
@@ -195,7 +226,7 @@ boolean MPR121::readTouchInputs() {
 			DEBUG_VALUE(DEBUG_MID, "Touched pin ", i);
 		      }
 		      );
-	touchStates[i] = 1;
+	touchStates[i] = true;
       } else {
 	DEBUG_COMMAND(DEBUG_HIGH,
 		      if (touchStates[i] == 1) {
@@ -203,7 +234,7 @@ boolean MPR121::readTouchInputs() {
 			DEBUG_VALUE(DEBUG_MID, "Released pin ", i);
 		      }
 		      );
-        touchStates[i] = 0;
+        touchStates[i] = false;
       }
     }
 

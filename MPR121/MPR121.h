@@ -75,17 +75,22 @@ class MPR121 {
   /*
    * IMPORTANT NODE: Wire.begin() must be called before MPR121 initialization
    */
-  MPR121(byte irqpin, boolean *touchStates, boolean interrupt);
+  MPR121(byte irqpin, boolean interrupt);
 
 
   boolean readTouchInputs();
+  boolean touched(byte sensor);
+  boolean previous(byte sensor);
+  boolean changed(byte sensor);
+
   void setThreshold(byte sensor, byte trigger, byte release);
 
   boolean triggered;
   boolean useInterrupt;
  private:
   byte irqpin;
-  boolean *touchStates;
+  boolean touchStates[MAX_SENSORS];
+  boolean prevStates[MAX_SENSORS];
 
   void setup();
   void checkInterrupt();

@@ -25,9 +25,6 @@
 
 #define DEBUG_LED 13
 
-boolean touch_states[MPR121::MAX_SENSORS];
-boolean prev_states[MPR121::MAX_SENSORS];
-
 MPR121 touch;
 
 void setup() {
@@ -36,13 +33,8 @@ void setup() {
 
   touch = MPR121(
 		 IRQ_PIN,       // triggered/interupt pin
-		 touch_states,  // array of current touch values
 		 false          // interrupt mode?
 		 );
-
-  for (int i = 0; i < MPR121::MAX_SENSORS; i++) {
-    prev_states[i] = false;
-  }
 
   pinMode(DEBUG_LED, OUTPUT);
 
@@ -70,19 +62,17 @@ boolean debug_on = false;
 void loop() {
   if (touch.readTouchInputs()) {
     for (int i = 0; i < MPR121::MAX_SENSORS; i++) {
-      if (touch_states[i] != prev_states[i]) {
+      if (touch.changed(i)) {
 
 	Serial.print("pin ");
 	Serial.print(i);
 	Serial.print(":");
 	
-	if (touch_states[i]) {
+	if (touch.touched(i)) {
 	  Serial.println(" Sensed");
 	} else {
 	  Serial.println(" Released");
 	}
-	
-        prev_states[i] = touch_states[i];
       }
     }
 
