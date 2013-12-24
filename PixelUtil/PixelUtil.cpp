@@ -244,6 +244,10 @@ uint32_t pixel_primary(byte position) {
   case 0: return pixel_color(255, 0,   0); break;
   case 1: return pixel_color(0,   255, 0); break;
   case 2: return pixel_color(0,   0,   255); break;
+  default: {
+    /* This should never be reached */
+    return 0;
+  }
   }
 }
 
@@ -256,6 +260,10 @@ uint32_t pixel_secondary(byte position) {
   case 3: return pixel_color(0,   255, 255); break;
   case 4: return pixel_color(0,   0,   255); break;
   case 5: return pixel_color(255, 0,   255); break;
+  default: {
+    /* This should never be reached */
+    return 0;
+  }
   }
 }
 
