@@ -68,9 +68,17 @@
 
 class MPR121 {
  public:
+  static const uint8_t MAX_SENSORS = 12;
+
   MPR121();
+
+  /*
+   * IMPORTANT NODE: Wire.begin() must be called before MPR121 initialization
+   */
   MPR121(byte irqpin, boolean *touchStates, boolean interrupt);
-  void readTouchInputs();
+
+
+  boolean readTouchInputs();
   void setThreshold(byte sensor, byte trigger, byte release);
 
   boolean triggered;

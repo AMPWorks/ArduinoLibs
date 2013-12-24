@@ -26,7 +26,9 @@ MPR121::MPR121() {
   touchStates = NULL;
 }
 
-/* Initializer */
+/*
+ * IMPORTANT NODE: Wire.begin() must be called before MPR121 initialization
+ */
 MPR121::MPR121(byte _irqpin, boolean *_touchStates, boolean _useInterrupt) {
   triggered = true;
 
@@ -157,13 +159,18 @@ void MPR121::setThreshold(byte sensor, byte trigger, byte release) {
   case 9: trig = ELE9_T; rel = ELE9_R; break;
   case 10: trig = ELE10_T; rel = ELE10_R; break;
   case 11: trig = ELE11_T; rel = ELE11_R; break;
+  default: {
+      DEBUG_ERR("Specified sensor does not exist");
+      DEBUG_ERR_STATE(14);
+      return;
+  }
   }
 
   set_register(0x5A, trig, trigger);
   set_register(0x5A, rel, release);
 }
 
-void MPR121::readTouchInputs() {
+boolean MPR121::readTouchInputs() {
   if (!useInterrupt) {
     checkInterrupt();
   }
@@ -199,6 +206,12 @@ void MPR121::readTouchInputs() {
         touchStates[i] = 0;
       }
     }
+
+    // Change of state
+    return true;
+  } else {
+    // No change of state
+    return false;
   }
 }
 
