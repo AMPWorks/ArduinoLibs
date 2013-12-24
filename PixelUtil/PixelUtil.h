@@ -20,7 +20,6 @@ class RGB {
 
   void setColor(byte r, byte g, byte b);
   void setColor(uint32_t c);
-  void setNext(byte r, byte g, byte b);
 
   void incrColor(int r, int g, int b);
   void incrNext(int r, int g, int b);
@@ -30,13 +29,10 @@ class RGB {
   byte blue();
   uint32_t color();
 
-  //void update();
-
   uint16_t pixel;
 
  private:
   color_t c;
-  //color_t next;
 };
 
 class PixelUtil 
@@ -77,5 +73,9 @@ byte pixel_green(uint32_t color);
 byte pixel_blue(uint32_t color);
 uint32_t pixel_wheel(byte WheelPos);
 uint32_t pixel_wheel(byte WheelPos, byte max);
+uint32_t pixel_primary(byte position);
+uint32_t pixel_secondary(byte position);
+
+uint32_t fadeTowards(uint32_t from, uint32_t to, byte percent);
 
 #endif

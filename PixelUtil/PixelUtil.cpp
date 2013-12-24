@@ -1,4 +1,4 @@
-/*
+/*******************************************************************************
  * Pixel strand utility, derived from Adafruit_WS2801 library example
  */
 
@@ -238,45 +238,40 @@ uint32_t pixel_wheel(byte WheelPos) {
   return pixel_wheel(WheelPos, 255);
 }
 
-void pixel_rainbow(Adafruit_WS2801 strip, uint8_t wait) {
-  uint16_t i, j;
-   
-  for (j=0; j < 256; j++) {     // 3 cycles of all 256 colors in the wheel
-    for (i=0; i < strip.numPixels(); i++) {
-      strip.setPixelColor(i, pixel_wheel( (i + j) % 255));
-    }  
-    strip.show();   // write all the pixels out
-    delay(wait);
+/* Choose a primary color mapped from 0-255 */
+uint32_t pixel_primary(byte position) {
+  switch (map(position, 0, 255, 0, 3)) {
+  case 0: return pixel_color(255, 0,   0); break;
+  case 1: return pixel_color(0,   255, 0); break;
+  case 2: return pixel_color(0,   0,   255); break;
   }
 }
 
-// Slightly different, this one makes the rainbow wheel equally distributed 
-// along the chain
-void rainbowCycle(Adafruit_WS2801 strip, uint8_t wait) {
-  uint16_t i, j;
-  
-  for (j=0; j < 256 * 5; j++) {     // 5 cycles of all 25 colors in the wheel
-    for (i=0; i < strip.numPixels(); i++) {
-      // tricky math! we use each pixel as a fraction of the full 96-color wheel
-      // (thats the i / strip.numPixels() part)
-      // Then add in j which makes the colors go around per pixel
-      // the % 96 is to make the wheel cycle around
-      strip.setPixelColor(i, pixel_wheel( ((i * 256 / strip.numPixels()) + j) % 256) );
-    }  
-    strip.show();   // write all the pixels out
-    delay(wait);
+/* Choose a primary or secondary color mapped from 0-255 */
+uint32_t pixel_secondary(byte position) {
+  switch (map(position, 0, 255, 0, 5)) {
+  case 0: return pixel_color(255, 0,   0); break;
+  case 1: return pixel_color(255, 255, 0); break;
+  case 2: return pixel_color(0,   255, 0); break;
+  case 3: return pixel_color(0,   255, 255); break;
+  case 4: return pixel_color(0,   0,   255); break;
+  case 5: return pixel_color(255, 0,   255); break;
   }
 }
 
-// fill the dots one after the other with said color
-// good for testing purposes
-void colorWipe(Adafruit_WS2801 strip, uint32_t c, uint8_t wait) {
-  uint16_t i;
-  
-  for (i=0; i < strip.numPixels(); i++) {
-      strip.setPixelColor(i, c);
-      strip.show();
-      delay(wait);
-  }
-}
 
+/* Return a color 'percent' of the way between the from and to colors */
+uint32_t fadeTowards(uint32_t from, uint32_t to, byte percent) {
+  int fromR = pixel_red(from);
+  int fromG = pixel_green(from);
+  int fromB = pixel_blue(from);
+  int toR = pixel_red(to);
+  int toG = pixel_green(to);
+  int toB = pixel_blue(to);
+
+  byte retR = fromR + ((toR - fromR) * percent) / 100;
+  byte retG = fromG + ((toG - fromG) * percent) / 100;
+  byte retB = fromB + ((toB - fromB) * percent) / 100;
+
+  return pixel_color(retR, retG, retB);
+}
