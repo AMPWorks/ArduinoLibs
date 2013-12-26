@@ -66,7 +66,8 @@
 #define TOU_THRESH	0x06
 #define	REL_THRESH	0x0A
 
-class MPR121 {
+class MPR121
+{
  public:
   static const uint8_t MAX_SENSORS = 12;
 
@@ -92,7 +93,7 @@ class MPR121 {
   boolean touchStates[MAX_SENSORS];
   boolean prevStates[MAX_SENSORS];
 
-  void setup();
+  void initialize();
   void checkInterrupt();
   void set_register(int address, unsigned char r, unsigned char v);
 };

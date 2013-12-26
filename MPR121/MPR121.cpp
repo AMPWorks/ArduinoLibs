@@ -1,8 +1,8 @@
-#define DEBUG_LEVEL DEBUG_HIGH
-#include <Debug.h>
-
 #include <Arduino.h>
 #include <Wire.h>
+
+#define DEBUG_LEVEL DEBUG_HIGH
+#include <Debug.h>
 
 #include "MPR121.h"
 
@@ -60,17 +60,20 @@ MPR121::MPR121(byte _irqpin, boolean _useInterrupt) {
        * If the pin specified is not a known interupt pin then allow this to
        * work anyway.
        */
-      DEBUG_ERR("Specified pin is not an interrupt");
+      DEBUG_ERR(F("Specified pin is not an interrupt"));
       DEBUG_ERR_STATE(13);
       useInterrupt = false;
       break;
     }
   }
 
-  setup();
+  DEBUG_VALUE(DEBUG_MID, F("MPR121: Initialized.  IRQ="), irqpin);
+  DEBUG_VALUELN(DEBUG_MID, F(" useInterrupt="), useInterrupt);
+
+  initialize();
 }
 
-void MPR121::setup(void) {
+void MPR121::initialize(void) {
 
   set_register(0x5A, ELE_CFG, 0x00);
   
@@ -86,7 +89,7 @@ void MPR121::setup(void) {
   set_register(0x5A, NCL_F, 0xFF);
   set_register(0x5A, FDL_F, 0x02);
   
-  // Section C - Sets touch and release thresholds for each electrode
+  // Section C - Sets default touch and release thresholds for each electrode
   set_register(0x5A, ELE0_T, TOU_THRESH);
   set_register(0x5A, ELE0_R, REL_THRESH);
  
@@ -163,14 +166,16 @@ void MPR121::setThreshold(byte sensor, byte trigger, byte release) {
   case 10: trig = ELE10_T; rel = ELE10_R; break;
   case 11: trig = ELE11_T; rel = ELE11_R; break;
   default: {
-      DEBUG_ERR("Specified sensor does not exist");
-      DEBUG_ERR_STATE(14);
-      return;
+    DEBUG_ERR(F("Specified sensor does not exist"));
+    DEBUG_ERR_STATE(14);
+    return;
   }
   }
 
+  set_register(0x5A, ELE_CFG, 0x00);
   set_register(0x5A, trig, trigger);
   set_register(0x5A, rel, release);
+  set_register(0x5A, ELE_CFG, 0x0C);
 }
 
 /* Return the value of the sensor from the most recent check */
@@ -220,18 +225,18 @@ boolean MPR121::readTouchInputs() {
 
     for  (int i = 0; i < 12; i++) {  // Check what electrodes were pressed
       if (touched & (1 << i)){
-	DEBUG_COMMAND(DEBUG_HIGH,
+	DEBUG_COMMAND(DEBUG_TRACE,
 		      if (touchStates[i] == 0) {
 			//pin i was just touched
-			DEBUG_VALUE(DEBUG_MID, "Touched pin ", i);
+			DEBUG_VALUELN(DEBUG_TRACE, F("Touched pin "), i);
 		      }
 		      );
 	touchStates[i] = true;
       } else {
-	DEBUG_COMMAND(DEBUG_HIGH,
+	DEBUG_COMMAND(DEBUG_TRACE,
 		      if (touchStates[i] == 1) {
 			//pin i is no longer being touched
-			DEBUG_VALUE(DEBUG_MID, "Released pin ", i);
+			DEBUG_VALUELN(DEBUG_TRACE, F("Released pin "), i);
 		      }
 		      );
         touchStates[i] = false;
@@ -247,7 +252,9 @@ boolean MPR121::readTouchInputs() {
 }
 
 void MPR121::checkInterrupt(void) {
-  if (digitalRead(irqpin)) triggered = true;
+  if (!digitalRead(irqpin)) { // IRQ is triggered on a down pulse
+    triggered = true;
+  }
 }
 
 void MPR121::set_register(int address, unsigned char r, unsigned char v) {

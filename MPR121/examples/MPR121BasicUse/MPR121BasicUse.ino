@@ -16,10 +16,12 @@
  */
 
 #include <Arduino.h>
+#include "MPR121.h"
 #include <Wire.h>
 
+#define DEBUG_LEVEL DEBUG_HIGH
 #include "Debug.h"
-#include "MPR121.h"
+
 
 #define IRQ_PIN 2
 
@@ -41,8 +43,9 @@ void setup() {
   /*
    * Set touch and release thresholds
    */
-  touch.setThreshold(0, 5, 10);
-  touch.setThreshold(1, 5, 10);
+  touch.setThreshold(0, 1, 2);
+  touch.setThreshold(1, 1, 2);
+  /*
   touch.setThreshold(2, 5, 10);
   touch.setThreshold(3, 5, 10);
   touch.setThreshold(4, 5, 10);
@@ -53,8 +56,8 @@ void setup() {
   touch.setThreshold(9, 5, 10);
   touch.setThreshold(10, 5, 10);
   touch.setThreshold(11, 5, 10);
-
-  Serial.println("MPR121 sensons initialized");
+  */
+  Serial.println("MPR121 sensors initialized");
 }
 
 boolean debug_on = false;
