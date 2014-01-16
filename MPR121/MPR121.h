@@ -83,6 +83,7 @@ class MPR121
   boolean touched(byte sensor);
   boolean previous(byte sensor);
   boolean changed(byte sensor);
+  unsigned long touchTime(byte sensor);
 
   void setThreshold(byte sensor, byte trigger, byte release);
 
@@ -92,6 +93,7 @@ class MPR121
   byte irqpin;
   boolean touchStates[MAX_SENSORS];
   boolean prevStates[MAX_SENSORS];
+  unsigned long touchTimes[MAX_SENSORS];
 
   void initialize();
   void checkInterrupt();

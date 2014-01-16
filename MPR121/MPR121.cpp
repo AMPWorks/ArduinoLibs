@@ -37,6 +37,7 @@ MPR121::MPR121(byte _irqpin, boolean _useInterrupt) {
   for (int i = 0; i < MAX_SENSORS; i++) {
     touchStates[i] = false;
     prevStates[i] = false;
+    touchTimes[i] = 0;
   }
 
   pinMode(irqpin, INPUT);
@@ -198,6 +199,18 @@ boolean MPR121::changed(byte sensor) {
 }
 
 /*
+ *  If currently touched, return the time touched so far, otherwise return
+ * the total time from the last touch period.
+ */
+unsigned long MPR121::touchTime(byte sensor) {
+  if (touchStates[sensor]) {
+    return millis() - touchTimes[sensor];
+  } else {
+    return touchTimes[sensor];
+  }
+}
+
+/*
  * Check if the IRQ pin has been triggered and if so query the chip for the
  * current state of the sensors.
  */
@@ -236,6 +249,12 @@ boolean MPR121::readTouchInputs() {
 		      }
 		      );
 	touchStates[i] = true;
+
+	if (!prevStates[i]) {
+	  /* Changed from not-touched to touch, record the time */
+	  touchTimes[i] = millis();
+	}
+
       } else {
 	DEBUG_COMMAND(DEBUG_TRACE,
 		      if (touchStates[i] == 1) {
@@ -244,6 +263,11 @@ boolean MPR121::readTouchInputs() {
 		      }
 		      );
         touchStates[i] = false;
+
+	if (prevStates[i]) {
+	  /* Changed from touched to not-touch, record the total touched time */
+	  touchTimes[i] = millis() - touchTimes[i];
+	}
       }
     }
 

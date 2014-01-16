@@ -73,7 +73,9 @@ void loop() {
 	if (touch.touched(i)) {
 	  Serial.println(" Sensed");
 	} else {
-	  Serial.println(" Released");
+	  Serial.print(" Released after ");
+	  Serial.print(touch.touchTime(i));
+	  Serial.println(" ms ");
 	}
       }
     }
