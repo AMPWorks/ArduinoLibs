@@ -4,7 +4,8 @@
  * This is a minimal example using the MPR121 sensor library.
  *
  * This sketch will flash an LED whenever a sensor changes state and print
- * the new state of the sensor.
+ * the new state of the sensor.  It also provides a minimal CLI for tweaking
+ * configuration values for the MPR121.
  *
  * By default, the following pins on the MPR121 should be attached to these
  * Arduino pins
@@ -21,7 +22,6 @@
 
 #define DEBUG_LEVEL DEBUG_HIGH
 #include "Debug.h"
-
 
 #define IRQ_PIN 2
 
@@ -43,20 +43,19 @@ void setup() {
   /*
    * Set touch and release thresholds
    */
-  touch.setThreshold(0, 1, 2);
-  touch.setThreshold(1, 1, 2);
-  /*
-  touch.setThreshold(2, 5, 10);
-  touch.setThreshold(3, 5, 10);
-  touch.setThreshold(4, 5, 10);
-  touch.setThreshold(5, 5, 10);
-  touch.setThreshold(6, 5, 10);
-  touch.setThreshold(7, 5, 10);
-  touch.setThreshold(8, 5, 10);
-  touch.setThreshold(9, 5, 10);
-  touch.setThreshold(10, 5, 10);
-  touch.setThreshold(11, 5, 10);
-  */
+  //  touch.setThreshold(0, 12, 1);
+  //  touch.setThreshold(1, 12, 15);
+  //  touch.setThreshold(2, 5, 10);
+  //  touch.setThreshold(3, 5, 10);
+  //  touch.setThreshold(4, 5, 10);
+  //  touch.setThreshold(5, 5, 10);
+  //  touch.setThreshold(6, 5, 10);
+  //  touch.setThreshold(7, 5, 10);
+  //  touch.setThreshold(8, 5, 10);
+  //  touch.setThreshold(9, 6, 2);
+  //  touch.setThreshold(10, 5, 10);
+  //  touch.setThreshold(11, 5, 10);
+
   Serial.println("MPR121 sensors initialized");
 }
 
@@ -83,5 +82,73 @@ void loop() {
     debug_on = !debug_on;
     if (debug_on) digitalWrite(DEBUG_LED, HIGH);
     else digitalWrite(DEBUG_LED, HIGH);
+  }
+
+  checkSerial();
+}
+
+
+/* Read data from the serial port */
+#define MAX_CLI_LEN 128
+void checkSerial() {
+  static char input[MAX_CLI_LEN];
+  static int i = 0;
+
+  while (Serial.available()) {
+    char c = (char)Serial.read();
+
+    if (c == '\n') {
+      input[i] = 0;
+      handleSerial(input);
+      i = 0;
+    } else {
+      input[i] = c;
+      i++;
+    }
+
+    if (i >= MAX_CLI_LEN - 2) {
+      // OVERFLOW
+      i = 0;
+    }
+  }
+}
+
+/*
+ * Available serial commands:
+ * 
+ * - Set touch thresholds:
+ *   't <sensor> <trigger> <release>'
+ *   example: 't 0 10 2'
+ */
+#define MAX_TOKENS 8
+void handleSerial(char *command) {
+  char *tokens[MAX_TOKENS];
+  for (int i = 0; i < MAX_TOKENS; i++) {
+    tokens[i] = NULL;
+  }
+
+  char *value_ptr = command;
+  int token = 0;
+  tokens[token] = value_ptr;
+  while (*value_ptr != 0) {
+    if (*value_ptr == ' ') {
+      token++;
+      if (token > MAX_TOKENS) {
+	break;
+      }
+
+      value_ptr++;
+      tokens[token] = value_ptr;
+      continue;
+    }
+    value_ptr++;
+  }
+
+  token = 4;
+  if (tokens[0][0] == 't') {
+    int sensor = atoi(tokens[1]);
+    int trigger = atoi(tokens[2]);
+    int release = atoi(tokens[3]);
+    touch.setThreshold(sensor, trigger, release);
   }
 }

@@ -176,6 +176,10 @@ void MPR121::setThreshold(byte sensor, byte trigger, byte release) {
   set_register(0x5A, trig, trigger);
   set_register(0x5A, rel, release);
   set_register(0x5A, ELE_CFG, 0x0C);
+
+  DEBUG_VALUE(DEBUG_MID, "Set threshold- Sensor:", sensor);
+  DEBUG_VALUE(DEBUG_MID, " trigger:", trigger);
+  DEBUG_VALUELN(DEBUG_MID, " release:", release);
 }
 
 /* Return the value of the sensor from the most recent check */
