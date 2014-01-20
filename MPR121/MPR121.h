@@ -115,21 +115,24 @@ class MPR121
 /*
  * Check the board type in order to determine which pins match which interrupt
  */
-#if defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
+#if defined(__AVR_ATmega328P__)
+// Arduino Uno, Nano
 #define INTERUPT_0_PIN 2
 #define INTERUPT_1_PIN 3
 #define INTERUPT_2_PIN -1
 #define INTERUPT_3_PIN -1
 #define INTERUPT_4_PIN -1
 #define INTERUPT_5_PIN -1
-#elif defined(__AVR_ATmega328P__)
+#elif defined(__AVR_ATmega1280__) || defined(__AVR_ATmega2560__)
+// Arduino Mega
 #define INTERUPT_0_PIN 2
 #define INTERUPT_1_PIN 3
 #define INTERUPT_2_PIN 21
 #define INTERUPT_3_PIN 20
 #define INTERUPT_4_PIN 19
 #define INTERUPT_5_PIN 18
-#elif defined(__AVR_ATmega328P__)
+#elif defined(__AVR_ATmega32u4__)
+// Arduino Leonardo
 #define INTERUPT_0_PIN 3
 #define INTERUPT_1_PIN 2
 #define INTERUPT_2_PIN 0
@@ -137,6 +140,7 @@ class MPR121
 #define INTERUPT_4_PIN 7
 #define INTERUPT_5_PIN -1
 #else
+XXX - This board needs to be defined
 #define INTERUPT_0_PIN -1
 #define INTERUPT_1_PIN -1
 #define INTERUPT_2_PIN -1
