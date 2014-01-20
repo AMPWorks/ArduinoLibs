@@ -71,15 +71,15 @@ void MPR121::init(byte _irqpin, boolean _useInterrupt, byte _address) {
        * If the pin specified is not a known interupt pin then allow this to
        * work anyway.
        */
-      DEBUG_ERR(F("Specified pin is not an interrupt"));
+      DEBUG_ERR("Specified pin is not an interrupt");
       DEBUG_ERR_STATE(13);
       useInterrupt = false;
       break;
     }
   }
 
-  DEBUG_VALUE(DEBUG_MID, F("MPR121: Initialized.  IRQ="), irqpin);
-  DEBUG_VALUELN(DEBUG_MID, F(" useInterrupt="), useInterrupt);
+  DEBUG_VALUE(DEBUG_MID, "MPR121: Initialized.  IRQ=", irqpin);
+  DEBUG_VALUELN(DEBUG_MID, " useInterrupt=", useInterrupt);
 
   initialize();
 }
@@ -177,7 +177,7 @@ void MPR121::setThreshold(byte sensor, byte trigger, byte release) {
   case 10: trig = ELE10_T; rel = ELE10_R; break;
   case 11: trig = ELE11_T; rel = ELE11_R; break;
   default: {
-    DEBUG_ERR(F("Specified sensor does not exist"));
+    DEBUG_ERR("Specified sensor does not exist");
     DEBUG_ERR_STATE(14);
     return;
   }
@@ -267,7 +267,7 @@ boolean MPR121::readTouchInputs() {
 	DEBUG_COMMAND(DEBUG_TRACE,
 		      if (touchStates[i] == 0) {
 			//pin i was just touched
-			DEBUG_VALUELN(DEBUG_TRACE, F("Touched pin "), i);
+			DEBUG_VALUELN(DEBUG_TRACE, "Touched pin ", i);
 		      }
 		      );
 	touchStates[i] = true;
@@ -281,7 +281,7 @@ boolean MPR121::readTouchInputs() {
 	DEBUG_COMMAND(DEBUG_TRACE,
 		      if (touchStates[i] == 1) {
 			//pin i is no longer being touched
-			DEBUG_VALUELN(DEBUG_TRACE, F("Released pin "), i);
+			DEBUG_VALUELN(DEBUG_TRACE, "Released pin ", i);
 		      }
 		      );
         touchStates[i] = false;

@@ -20,11 +20,11 @@
 
   #define DEBUG_PRINT(v, x) if (v <= DEBUG_LEVEL) {                     \
     close_line = true;                                                  \
-    Serial.print(x);							\
+    Serial.print(F(x));							\
   }
   #define DEBUG_PRINTLN(v, x) if (v <= DEBUG_LEVEL) {                   \
     close_line = false;                                                 \
-    Serial.println(x);                                                  \
+    Serial.println(F(x));						\
   }
   #define DEBUG_HEX(v, x) if (v <= DEBUG_LEVEL) {                 \
     close_line = true;                                                  \
@@ -32,19 +32,19 @@
   }
   #define DEBUG_VALUE(v, x, y) if (v <= DEBUG_LEVEL) {                  \
     close_line = true;                                                  \
-    Serial.print(x); Serial.print(y);                                   \
+    Serial.print(F(x)); Serial.print(y);				\
   }
   #define DEBUG_HEXVAL(v, x, y) if (v <= DEBUG_LEVEL) {                 \
     close_line = true;                                                  \
-    Serial.print(x); Serial.print(y, HEX);                              \
+    Serial.print(F(x)); Serial.print(y, HEX);				\
   }
   #define DEBUG_HEXVALLN(v, x, y) if (v <= DEBUG_LEVEL) {                 \
     close_line = false;                                                  \
-    Serial.print(x); Serial.println(y, HEX);                              \
+    Serial.print(F(x)); Serial.println(y, HEX);				\
   }
   #define DEBUG_VALUELN(v, x, y) if (v <= DEBUG_LEVEL) {                \
     close_line = false;                                                 \
-    Serial.print(x); Serial.println(y);                                 \
+    Serial.print(F(x)); Serial.println(y);				\
   }
   #define DEBUG_PRINT_END() if (close_line) {                          \
     close_line = false;                                                 \

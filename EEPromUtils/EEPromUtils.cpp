@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include "EEPROM.h"
 
-#define DEBUG_LEVEL DEBUG_HIGH
+//#define DEBUG_LEVEL DEBUG_HIGH
 #include "Debug.h"
 
 #include "EEPromUtils.h"
@@ -69,7 +69,7 @@ int EEPROM_safe_write(int location, uint8_t *data, int datalen) {
   int start = location;
 
   if (location + datalen + EEPROM_WRAPPER_SIZE >= EEPROM_MAX_ADDRESS) {
-    DEBUG_ERR(F("EEPROM_safe_write: data exceeds max address"));
+    DEBUG_ERR("EEPROM_safe_write: data exceeds max address");
     return -1;
   }
   
@@ -84,10 +84,10 @@ int EEPROM_safe_write(int location, uint8_t *data, int datalen) {
   location += datalen;
   EEPROM.write(location++, crc);
 
-  DEBUG_VALUE(DEBUG_HIGH, F("EEPROM_safe_write: addr="), start);
-  DEBUG_VALUE(DEBUG_HIGH, F(" data="), datalen);
-  DEBUG_VALUE(DEBUG_HIGH, F(" all="), location - start);
-  DEBUG_VALUELN(DEBUG_HIGH, F(" ret="), location);
+  DEBUG_VALUE(DEBUG_HIGH, "EEPROM_safe_write: addr=", start);
+  DEBUG_VALUE(DEBUG_HIGH, " data=", datalen);
+  DEBUG_VALUE(DEBUG_HIGH, " all=", location - start);
+  DEBUG_VALUELN(DEBUG_HIGH, " ret=", location);
 
   return location;
 }
@@ -102,26 +102,26 @@ int EEPROM_safe_read(int location, uint8_t *buff, int bufflen)
 {
   uint8_t val;
 
-  DEBUG_VALUE(DEBUG_HIGH, F("EEPROM_safe_read: addr="), location);
+  DEBUG_VALUE(DEBUG_HIGH, "EEPROM_safe_read: addr=", location);
 
   if (location + EEPROM_WRAPPER_SIZE >= EEPROM_MAX_ADDRESS) {
-    DEBUG_ERR(F("EEPROM_safe_read: location exceeds max address"));
+    DEBUG_ERR("EEPROM_safe_read: location exceeds max address");
     return -1;
   }
 
   val = EEPROM.read(location++);
   if (val != EEPROM_START_BYTE) {
-    DEBUG_ERR(F("EEPROM_safe_read: first byte not START"));
+    DEBUG_ERR("EEPROM_safe_read: first byte not START");
     return -2;
   }
 
   uint8_t datalen = EEPROM.read(location++);
   if (datalen > bufflen) {
-    DEBUG_ERR(F("EEPROM_safe_read: bufflen less than datalen"));
+    DEBUG_ERR("EEPROM_safe_read: bufflen less than datalen");
     return -3;
   }
   if (location + datalen + EEPROM_WRAPPER_SIZE >= EEPROM_MAX_ADDRESS) {
-    DEBUG_ERR(F("EEPROM_safe_read: data exceeds max address"));
+    DEBUG_ERR("EEPROM_safe_read: data exceeds max address");
     return -4;
   }
 
@@ -133,11 +133,11 @@ int EEPROM_safe_read(int location, uint8_t *buff, int bufflen)
 
   crc_t crc = EEPROM.read(location++);
   if (crc != EEPROM_crc(buff, datalen)) {
-    DEBUG_ERR(F("EEPROM_safe_read: CRC didn't match"));
+    DEBUG_ERR("EEPROM_safe_read: CRC didn't match");
     return -5;
   }
 
-  DEBUG_VALUELN(DEBUG_HIGH, F(" ret="), location);
+  DEBUG_VALUELN(DEBUG_HIGH, " ret=", location);
 
   return location;
 }
