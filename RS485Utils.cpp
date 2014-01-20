@@ -145,7 +145,7 @@ const byte *RS485Socket::getMsg(byte address, unsigned int *retlen)
   return NULL;
 }
 
-int RS485Socket::getLength() 
+byte RS485Socket::getLength()
 {
   return channel->getLength();
 }

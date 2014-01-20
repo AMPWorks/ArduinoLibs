@@ -34,7 +34,7 @@ class RS485Socket
 
   void sendMsgTo(byte address, const byte * data, const byte length);
   const byte *getMsg(byte address, unsigned int *retlen);
-  int getLength();
+  byte getLength();
 
 
   private:
