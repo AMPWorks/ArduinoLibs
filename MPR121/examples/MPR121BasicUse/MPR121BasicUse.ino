@@ -5,7 +5,7 @@
  *
  * This sketch will flash an LED whenever a sensor changes state and print
  * the new state of the sensor.  It also provides a minimal CLI for tweaking
- * configuration values for the MPR121.
+ * and reading configuration values for the MPR121.
  *
  * By default, the following pins on the MPR121 should be attached to these
  * Arduino pins
@@ -21,7 +21,7 @@
 #include <Wire.h>
 
 #define DEBUG_LEVEL DEBUG_HIGH
-#include "Debug.h"
+#include <Debug.h>
 
 #define IRQ_PIN 2
 
@@ -119,7 +119,11 @@ void checkSerial() {
  * Available serial commands:
  * 
  * - Set touch thresholds:
- *   't <sensor> <trigger> <release>'
+ *   't <sensor> <trigger> <release>' - Set the touch thresholds for a sensor
+ *   'd <trigger> <release>' - Set the debounce values for a sensor
+ *   'r <register>' - Read the indicated register's value
+ *   's <register> <value>' - Set the value of a register
+ *
  *   example: 't 0 10 2'
  */
 #define MAX_TOKENS 8
@@ -147,10 +151,46 @@ void handleSerial(char *command) {
   }
 
   token = 4;
-  if (tokens[0][0] == 't') {
+  switch (tokens[0][0]) {
+  case 't': {
     int sensor = atoi(tokens[1]);
     int trigger = atoi(tokens[2]);
     int release = atoi(tokens[3]);
     touch.setThreshold(sensor, trigger, release);
+    break;
+  }
+  case 'd': {
+    int trigger = atoi(tokens[1]);
+    int release = atoi(tokens[2]);
+    touch.setDebounce(trigger, release);
+    break;
+  }
+
+  case 'r': {
+    uint8_t reg = strtol(tokens[1], NULL, 16);
+    byte value;
+    if (touch.read_register(reg, &value)) {
+      Serial.print("Read register:0x");
+      Serial.print(reg, HEX);
+      Serial.print(" value:0x");
+      Serial.println(value, HEX);
+    } else {
+      Serial.print("Unable to read register:0x");
+      Serial.println(reg, HEX);
+    }
+    break;
+  }
+  case 's': {
+    uint8_t reg = strtol(tokens[1], NULL, 0);
+    uint8_t value = strtol(tokens[2], NULL, 0);
+    touch.set_register(ELE_CFG, 0x00);
+    touch.set_register(reg, value);
+    touch.set_register(ELE_CFG, 0x0C);
+    Serial.print("Set register:0x");
+    Serial.print(reg, HEX);
+    Serial.print(" value:0x");
+    Serial.println(value, HEX);
+    break;
+  }
   }
 }

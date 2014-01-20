@@ -46,6 +46,7 @@
 #define	ELE10_R	0x56
 #define	ELE11_T	0x57
 #define	ELE11_R	0x58
+#define DEBOUNCE 0x5B
 #define	FIL_CFG	0x5D
 #define	ELE_CFG	0x5E
 #define GPIO_CTRL0	0x73
@@ -61,10 +62,12 @@
 #define	ATO_CFGL	0x7E
 #define	ATO_CFGT	0x7F
 
+// Initial I2C address for MPR121
+#define START_ADDRESS 0x5A
 
-// Global Constants
-#define TOU_THRESH	0x06
-#define	REL_THRESH	0x0A
+// Default touch and release thresholds
+#define TOU_THRESH 0x0A
+#define	REL_THRESH 0x06
 
 class MPR121
 {
@@ -76,6 +79,7 @@ class MPR121
   /*
    * IMPORTANT NODE: Wire.begin() must be called before MPR121 initialization
    */
+  MPR121(byte irqpin, boolean interrupt, byte address);
   MPR121(byte irqpin, boolean interrupt);
 
 
@@ -85,19 +89,27 @@ class MPR121
   boolean changed(byte sensor);
   unsigned long touchTime(byte sensor);
 
+  /* Set configuration values */
   void setThreshold(byte sensor, byte trigger, byte release);
+  void setDebounce(byte trigger, byte release);
+
+  void set_register(uint8_t r, uint8_t v);
+  boolean read_register(uint8_t r, byte* result);
 
   boolean triggered;
   boolean useInterrupt;
  private:
+  byte address;
   byte irqpin;
+
+  void init(byte irqpin, boolean interrupt, byte address);
+
   boolean touchStates[MAX_SENSORS];
   boolean prevStates[MAX_SENSORS];
   unsigned long touchTimes[MAX_SENSORS];
 
   void initialize();
   void checkInterrupt();
-  void set_register(int address, unsigned char r, unsigned char v);
 };
 
 /*

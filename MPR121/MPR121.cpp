@@ -28,11 +28,20 @@ MPR121::MPR121() {
 /*
  * IMPORTANT NODE: Wire.begin() must be called before MPR121 initialization
  */
+MPR121::MPR121(byte _irqpin, boolean _useInterrupt, byte _address) {
+  init(_irqpin, _useInterrupt, _address);
+}
+
 MPR121::MPR121(byte _irqpin, boolean _useInterrupt) {
+  init(_irqpin, _useInterrupt, START_ADDRESS);
+}
+
+void MPR121::init(byte _irqpin, boolean _useInterrupt, byte _address) {
   triggered = true;
 
   irqpin = _irqpin;
   useInterrupt = _useInterrupt;
+  address = _address;
 
   for (int i = 0; i < MAX_SENSORS; i++) {
     touchStates[i] = false;
@@ -46,6 +55,7 @@ MPR121::MPR121(byte _irqpin, boolean _useInterrupt) {
   if (useInterrupt) {
     /* Register the interrupt handler */
     switch (irqpin) {
+      //XXX - Check if the nano shows up at all for the board type?
     case INTERUPT_0_PIN: {
       cap[0] = this;
       attachInterrupt(0, irqTriggered0, RISING);
@@ -76,78 +86,78 @@ MPR121::MPR121(byte _irqpin, boolean _useInterrupt) {
 
 void MPR121::initialize(void) {
 
-  set_register(0x5A, ELE_CFG, 0x00);
+  set_register(ELE_CFG, 0x00);
   
   // Section A - Controls filtering when data is > baseline.
-  set_register(0x5A, MHD_R, 0x01);
-  set_register(0x5A, NHD_R, 0x01);
-  set_register(0x5A, NCL_R, 0x00);
-  set_register(0x5A, FDL_R, 0x00);
+  set_register(MHD_R, 0x01);
+  set_register(NHD_R, 0x01);
+  set_register(NCL_R, 0x00);
+  set_register(FDL_R, 0x00);
 
   // Section B - Controls filtering when data is < baseline.
-  set_register(0x5A, MHD_F, 0x01);
-  set_register(0x5A, NHD_F, 0x01);
-  set_register(0x5A, NCL_F, 0xFF);
-  set_register(0x5A, FDL_F, 0x02);
+  set_register(MHD_F, 0x01);
+  set_register(NHD_F, 0x01);
+  set_register(NCL_F, 0xFF);
+  set_register(FDL_F, 0x02);
   
   // Section C - Sets default touch and release thresholds for each electrode
-  set_register(0x5A, ELE0_T, TOU_THRESH);
-  set_register(0x5A, ELE0_R, REL_THRESH);
+  set_register(ELE0_T, TOU_THRESH);
+  set_register(ELE0_R, REL_THRESH);
  
-  set_register(0x5A, ELE1_T, TOU_THRESH);
-  set_register(0x5A, ELE1_R, REL_THRESH);
+  set_register(ELE1_T, TOU_THRESH);
+  set_register(ELE1_R, REL_THRESH);
   
-  set_register(0x5A, ELE2_T, TOU_THRESH);
-  set_register(0x5A, ELE2_R, REL_THRESH);
+  set_register(ELE2_T, TOU_THRESH);
+  set_register(ELE2_R, REL_THRESH);
   
-  set_register(0x5A, ELE3_T, TOU_THRESH);
-  set_register(0x5A, ELE3_R, REL_THRESH);
+  set_register(ELE3_T, TOU_THRESH);
+  set_register(ELE3_R, REL_THRESH);
   
-  set_register(0x5A, ELE4_T, TOU_THRESH);
-  set_register(0x5A, ELE4_R, REL_THRESH);
+  set_register(ELE4_T, TOU_THRESH);
+  set_register(ELE4_R, REL_THRESH);
   
-  set_register(0x5A, ELE5_T, TOU_THRESH);
-  set_register(0x5A, ELE5_R, REL_THRESH);
+  set_register(ELE5_T, TOU_THRESH);
+  set_register(ELE5_R, REL_THRESH);
   
-  set_register(0x5A, ELE6_T, TOU_THRESH);
-  set_register(0x5A, ELE6_R, REL_THRESH);
+  set_register(ELE6_T, TOU_THRESH);
+  set_register(ELE6_R, REL_THRESH);
   
-  set_register(0x5A, ELE7_T, TOU_THRESH);
-  set_register(0x5A, ELE7_R, REL_THRESH);
+  set_register(ELE7_T, TOU_THRESH);
+  set_register(ELE7_R, REL_THRESH);
   
-  set_register(0x5A, ELE8_T, TOU_THRESH);
-  set_register(0x5A, ELE8_R, REL_THRESH);
+  set_register(ELE8_T, TOU_THRESH);
+  set_register(ELE8_R, REL_THRESH);
   
-  set_register(0x5A, ELE9_T, TOU_THRESH);
-  set_register(0x5A, ELE9_R, REL_THRESH);
+  set_register(ELE9_T, TOU_THRESH);
+  set_register(ELE9_R, REL_THRESH);
   
-  set_register(0x5A, ELE10_T, TOU_THRESH);
-  set_register(0x5A, ELE10_R, REL_THRESH);
+  set_register(ELE10_T, TOU_THRESH);
+  set_register(ELE10_R, REL_THRESH);
   
-  set_register(0x5A, ELE11_T, TOU_THRESH);
-  set_register(0x5A, ELE11_R, REL_THRESH);
+  set_register(ELE11_T, TOU_THRESH);
+  set_register(ELE11_R, REL_THRESH);
   
   // Section D
   // Set the Filter Configuration
   // Set ESI2
-  set_register(0x5A, FIL_CFG, 0x04);
+  set_register(FIL_CFG, 0x04);
   
   // Section E
   // Electrode Configuration
   // Set ELE_CFG to 0x00 to return to standby mode
-  set_register(0x5A, ELE_CFG, 0x0C);  // Enables all 12 Electrodes
+  set_register(ELE_CFG, 0x0C);  // Enables all 12 Electrodes
   
   
   // Section F
   // Enable Auto Config and auto Reconfig
   /*
-    set_register(0x5A, ATO_CFG0, 0x0B);
-    set_register(0x5A, ATO_CFGU, 0xC9);  // USL = (Vdd-0.7)/vdd*256 = 0xC9 @3.3V
-    set_register(0x5A, ATO_CFGL, 0x82);  // LSL = 0.65*USL = 0x82 @3.3V
-    set_register(0x5A, ATO_CFGT, 0xB5);  // Target = 0.9*USL = 0xB5 @3.3V
+    set_register(ATO_CFG0, 0x0B);
+    set_register(ATO_CFGU, 0xC9);  // USL = (Vdd-0.7)/vdd*256 = 0xC9 @3.3V
+    set_register(ATO_CFGL, 0x82);  // LSL = 0.65*USL = 0x82 @3.3V
+    set_register(ATO_CFGT, 0xB5);  // Target = 0.9*USL = 0xB5 @3.3V
   */
   
-  set_register(0x5A, ELE_CFG, 0x0C);
+  set_register(ELE_CFG, 0x0C);
 }
 
 void MPR121::setThreshold(byte sensor, byte trigger, byte release) {
@@ -173,13 +183,25 @@ void MPR121::setThreshold(byte sensor, byte trigger, byte release) {
   }
   }
 
-  set_register(0x5A, ELE_CFG, 0x00);
-  set_register(0x5A, trig, trigger);
-  set_register(0x5A, rel, release);
-  set_register(0x5A, ELE_CFG, 0x0C);
+  set_register(ELE_CFG, 0x00);
+  set_register(trig, trigger);
+  set_register(rel, release);
+  set_register(ELE_CFG, 0x0C);
 
   DEBUG_VALUE(DEBUG_MID, "Set threshold- Sensor:", sensor);
   DEBUG_VALUE(DEBUG_MID, " trigger:", trigger);
+  DEBUG_VALUELN(DEBUG_MID, " release:", release);
+}
+
+/* Set the debounce values, range for each is 0-7 */
+void MPR121::setDebounce(byte trigger, byte release) {
+  byte value = (((release & 0x7) << 4) | (trigger & 0x7));
+
+  set_register(ELE_CFG, 0x00);
+  set_register(DEBOUNCE, value);
+  set_register(ELE_CFG, 0x0C);
+
+  DEBUG_VALUE(DEBUG_MID, "Set debouce- trigger:", trigger);
   DEBUG_VALUELN(DEBUG_MID, " release:", release);
 }
 
@@ -285,9 +307,24 @@ void MPR121::checkInterrupt(void) {
   }
 }
 
-void MPR121::set_register(int address, unsigned char r, unsigned char v) {
+void MPR121::set_register(uint8_t r, uint8_t v) {
     Wire.beginTransmission(address);
     Wire.write(r);
     Wire.write(v);
     Wire.endTransmission();
+}
+
+boolean MPR121::read_register(uint8_t r, byte* result) {
+  Wire.beginTransmission(address);
+  Wire.write(r);
+  Wire.endTransmission(false);
+
+  Wire.requestFrom(address,  (uint8_t)1, (uint8_t)true);
+
+  if (Wire.available() >= 1) {
+    *result = Wire.read() ;
+    return true;
+  } else {
+    return false;
+  }
 }
