@@ -1,5 +1,5 @@
 /*
- * Written by Adam Phelps, amp@cs.stanford.edu, 2013
+ * Written by Adam Phelps, amp@cs.stanford.edu, 2013-2014
  * 
  * This is a minimal example using the MPR121 sensor library.
  *

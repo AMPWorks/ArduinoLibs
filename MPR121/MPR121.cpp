@@ -86,6 +86,10 @@ void MPR121::init(byte _irqpin, boolean _useInterrupt, byte _address) {
 
 void MPR121::initialize(void) {
 
+  // Clear registers for the case where the chip is being configured again
+  // without the power being reset
+  set_register(0x80, 0x63);
+
   set_register(ELE_CFG, 0x00);
   
   // Section A - Controls filtering when data is > baseline.
