@@ -2,6 +2,9 @@
 #include <RS485_non_blocking.h>
 #include <SoftwareSerial.h>
 
+#define DEBUG_LEVEL DEBUG_HIGH
+#include "Debug.h"
+
 #include "RS485Utils.h"
 
 // XXX: Need to figure out how to use non-static function pointers so this
@@ -52,8 +55,8 @@ size_t RS485Socket::serialWrite(const byte value)
 
 size_t RS485Socket::serialDebugWrite(const byte value) 
 {
-  Serial.print(value, HEX);
-  Serial.print(F(" "));
+  DEBUG_HEX(DEBUG_HIGH, value);
+  DEBUG_PRINT(DEBUG_HIGH, " ");
   return serial->write(value);
 }
 
@@ -66,8 +69,8 @@ int RS485Socket::serialRead()
 int RS485Socket::serialDebugRead() 
 {
   int value = serial->read();
-  Serial.print(value, HEX);
-  Serial.print(F(" "));
+  DEBUG_HEX(DEBUG_HIGH, value);
+  DEBUG_PRINT(DEBUG_HIGH, " ");
   return value;
 }
 
@@ -97,9 +100,8 @@ void RS485Socket::sendMsgTo(byte address,
   msg->hdr.flags = 0;
 
   if (debug) {
-    Serial.print(F("XMIT:"));
-    Serial.print(msg_len);
-    Serial.print(F(" "));
+    DEBUG_VALUE(DEBUG_HIGH, "XMIT:", msg_len);
+    DEBUG_PRINT(DEBUG_HIGH, " ");
     printSocketMsg(msg);
   }
 
@@ -113,24 +115,23 @@ const byte *RS485Socket::getMsg(byte address, unsigned int *retlen)
 //  if (debug) Serial.print(F(".")); // Uncomment to print every call
   if (channel->update()) {
     if (debug) {
-      Serial.print(F("getMsg:"));
-      Serial.print(getLength());
+      DEBUG_VALUE(DEBUG_HIGH, "getMsg:", getLength());
     }
 
     const rs485_socket_msg_t *msg = (rs485_socket_msg_t *)channel->getData();
 
     if (debug &&
         (getLength() < sizeof (rs485_socket_hdr_t))) {
-      Serial.println(F("ERROR-length < header"));
+      DEBUG_ERR("ERROR-length < header");
     }
 
     if (debug &&
         (getLength() < (sizeof (rs485_socket_hdr_t) + msg->hdr.length))) {
-      Serial.println(F("ERROR-length < header + data"));
+      DEBUG_ERR("ERROR-length < header + data");
     }
 
     if (debug) {
-      Serial.print(F(" RECV: "));
+      DEBUG_PRINT(DEBUG_HIGH, " RECV: ");
       printSocketMsg(msg);
     }
 
@@ -151,23 +152,16 @@ byte RS485Socket::getLength()
 
 void printSocketMsg(const rs485_socket_msg_t *msg) 
 {
-  Serial.print(F("i:"));
-  Serial.print(msg->hdr.ID, HEX);
-  Serial.print(F(" l:"));
-  Serial.print(msg->hdr.length, HEX);
-  Serial.print(F(" a:"));
-  Serial.print(msg->hdr.address, HEX);
-  Serial.print(F(" f:"));
-  Serial.print(msg->hdr.flags, HEX);
-  Serial.print(F(" "));
-  printBuffer(msg->data, msg->hdr.length);
-  Serial.println();
+DEBUG_HEXVAL(DEBUG_HIGH, "i:", msg->hdr.ID);
+DEBUG_HEXVAL(DEBUG_HIGH, " l:", msg->hdr.length);
+DEBUG_HEXVAL(DEBUG_HIGH," a:", msg->hdr.address);
+DEBUG_HEXVAL(DEBUG_HIGH, " f:", msg->hdr.flags);
+printBuffer(msg->data, msg->hdr.length);
 }
 
 void printBuffer(const byte *buff, int length) 
 {
   for (int b = 0; b < length; b++) {
-    Serial.print(buff[b], HEX);
-    Serial.print(F(" "));
+    DEBUG_HEXVAL(DEBUG_HIGH, " ", buff[b]);
   }
 }
