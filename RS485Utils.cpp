@@ -53,7 +53,7 @@ size_t RS485Socket::serialWrite(const byte value)
 size_t RS485Socket::serialDebugWrite(const byte value) 
 {
   Serial.print(value, HEX);
-  Serial.print(" ");
+  Serial.print(F(" "));
   return serial->write(value);
 }
 
@@ -67,7 +67,7 @@ int RS485Socket::serialDebugRead()
 {
   int value = serial->read();
   Serial.print(value, HEX);
-  Serial.print(" ");
+  Serial.print(F(" "));
   return value;
 }
 
@@ -97,9 +97,9 @@ void RS485Socket::sendMsgTo(byte address,
   msg->hdr.flags = 0;
 
   if (debug) {
-    Serial.print("XMIT:");
+    Serial.print(F("XMIT:"));
     Serial.print(msg_len);
-    Serial.print(" ");
+    Serial.print(F(" "));
     printSocketMsg(msg);
   }
 
@@ -110,10 +110,10 @@ void RS485Socket::sendMsgTo(byte address,
 
 const byte *RS485Socket::getMsg(byte address, unsigned int *retlen) 
 {
-//  if (debug) Serial.print(".");
+//  if (debug) Serial.print(F(".")); // Uncomment to print every call
   if (channel->update()) {
     if (debug) {
-      Serial.print("getMsg:");
+      Serial.print(F("getMsg:"));
       Serial.print(getLength());
     }
 
@@ -121,16 +121,16 @@ const byte *RS485Socket::getMsg(byte address, unsigned int *retlen)
 
     if (debug &&
         (getLength() < sizeof (rs485_socket_hdr_t))) {
-      Serial.println("ERROR-length < header");
+      Serial.println(F("ERROR-length < header"));
     }
 
     if (debug &&
         (getLength() < (sizeof (rs485_socket_hdr_t) + msg->hdr.length))) {
-      Serial.println("ERROR-length < header + data");
+      Serial.println(F("ERROR-length < header + data"));
     }
 
     if (debug) {
-      Serial.print(" RECV: ");
+      Serial.print(F(" RECV: "));
       printSocketMsg(msg);
     }
 
@@ -138,7 +138,6 @@ const byte *RS485Socket::getMsg(byte address, unsigned int *retlen)
       *retlen = msg->hdr.length;
       return &msg->data[0];
     }
-
   }
 
   *retlen = 0;
@@ -152,23 +151,23 @@ byte RS485Socket::getLength()
 
 void printSocketMsg(const rs485_socket_msg_t *msg) 
 {
-  Serial.print("i:");
+  Serial.print(F("i:"));
   Serial.print(msg->hdr.ID, HEX);
-  Serial.print(" l:");
+  Serial.print(F(" l:"));
   Serial.print(msg->hdr.length, HEX);
-  Serial.print(" a:");
+  Serial.print(F(" a:"));
   Serial.print(msg->hdr.address, HEX);
-  Serial.print(" f:");
+  Serial.print(F(" f:"));
   Serial.print(msg->hdr.flags, HEX);
-  Serial.print(" ");
+  Serial.print(F(" "));
   printBuffer(msg->data, msg->hdr.length);
-  Serial.println("");
+  Serial.println();
 }
 
 void printBuffer(const byte *buff, int length) 
 {
   for (int b = 0; b < length; b++) {
     Serial.print(buff[b], HEX);
-    Serial.print(" ");
+    Serial.print(F(" "));
   }
 }
