@@ -11,6 +11,13 @@
 //      can be a class field.
 SoftwareSerial *serial;
 
+RS485Socket::RS485Socket() {
+  recvPin = 0;
+  xmitPin = 0;
+  enablePin = 0;
+  initialized = false;
+}
+
 RS485Socket::RS485Socket(byte _recvPin, byte _xmitPin, byte _enablePin) 
 {
   RS485Socket(_recvPin, _xmitPin, _enablePin, false);
@@ -19,6 +26,7 @@ RS485Socket::RS485Socket(byte _recvPin, byte _xmitPin, byte _enablePin)
 RS485Socket::RS485Socket(byte _recvPin, byte _xmitPin, byte _enablePin,
                          boolean _debug) 
 {
+  initialized = true;
   recvPin = _recvPin;
   xmitPin = _xmitPin;
   enablePin = _enablePin;
@@ -39,7 +47,7 @@ RS485Socket::RS485Socket(byte _recvPin, byte _xmitPin, byte _enablePin,
 void RS485Socket::setup() 
 {
   
-  serial->begin(28800);
+  serial->begin(28800); // XXX - Could this be a higher rate?
   channel->begin();
   
   pinMode(enablePin, OUTPUT);

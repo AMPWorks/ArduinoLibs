@@ -26,6 +26,7 @@ void printBuffer(const byte *buff, int length);
 class RS485Socket 
 {
   public:
+  RS485Socket();
   RS485Socket(byte _recvPin, byte _xmitPin, byte _enablePin);
   RS485Socket(byte _recvPin, byte _xmitPin, byte _enablePin, boolean debug);
   
@@ -36,6 +37,7 @@ class RS485Socket
   const byte *getMsg(byte address, unsigned int *retlen);
   byte getLength();
 
+  boolean initialized;
 
   private:
   byte recvPin, xmitPin, enablePin;
