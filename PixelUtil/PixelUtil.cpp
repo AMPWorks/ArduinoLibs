@@ -6,28 +6,44 @@
 #include "SPI.h"
 #include "Adafruit_WS2801.h"
 
-//#define DEBUG_LEVEL DEBUG_HIGH
+#define DEBUG_LEVEL DEBUG_HIGH
 #include "Debug.h"
 
 #include "PixelUtil.h"
 
 PixelUtil::PixelUtil() 
 {
-
+  initialized = false;
 }
 
 // WARNING: PixulUtil initialization *must* be after the Serial.init()
+// XXX: This might have been corrected by changing pixels to a pointer
 PixelUtil::PixelUtil(uint16_t numPixels, uint8_t dataPin, uint8_t clockPin,
-                     uint8_t order) 
+                     uint8_t order)
 {
-  pixels = Adafruit_WS2801(numPixels, dataPin, clockPin, order);
-  pixels.begin();
-  pixels.show();
+  initialized = false;
+  init(numPixels, dataPin, clockPin, order);
+}
+
+void PixelUtil::init(uint16_t numPixels, uint8_t dataPin, uint8_t clockPin,
+                     uint8_t order)
+{
+  if (initialized) {
+    DEBUG_ERR("PixelUtil::init already initialized");
+    DEBUG_ERR_STATE(DEBUG_ERR_REINIT);
+    // XXX - Could re-init the pixels?
+  } else {
+    pixels = new Adafruit_WS2801(numPixels, dataPin, clockPin, order);
+    pixels->begin();
+    pixels->show();
+  }
+  initialized = true;
+  DEBUG_PRINTLN(DEBUG_LOW, "PixelUtil::init");
 }
 
 uint16_t PixelUtil::numPixels() 
 {
-  return pixels.numPixels();
+  return pixels->numPixels();
 }
 
 /* Construct a 32bit value from 8bit RGB values */
@@ -44,27 +60,27 @@ uint32_t PixelUtil::pixelColor(byte r, byte g, byte b)
 
 void PixelUtil::setPixelRGB(uint16_t led, byte r, byte g, byte b)
 {
-  pixels.setPixelColor(led, pixelColor(r, g, b));
+  pixels->setPixelColor(led, pixelColor(r, g, b));
 }
 
 void PixelUtil::setPixelRGB(uint16_t led, uint32_t color)
 {
-  pixels.setPixelColor(led, color);
+  pixels->setPixelColor(led, color);
 }
 
 void PixelUtil::setPixelRGB(RGB *rgb) {
   if (rgb->pixel < numPixels()) {
-    pixels.setPixelColor(rgb->pixel, rgb->color());
+    pixels->setPixelColor(rgb->pixel, rgb->color());
   }
 }
 
 uint32_t PixelUtil::getColor(uint16_t led) {
-  return pixels.getPixelColor(led);
+  return pixels->getPixelColor(led);
 }
 
 void PixelUtil::update() 
 {
-  pixels.show();
+  pixels->show();
 }
 
 /* Loop through the given pattern */

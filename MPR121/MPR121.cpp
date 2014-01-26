@@ -20,6 +20,7 @@ void irqTriggered1() {
 }
 
 MPR121::MPR121() {
+  initialized = false;
   triggered = false;
   useInterrupt = false;
   irqpin = false;
@@ -29,14 +30,22 @@ MPR121::MPR121() {
  * IMPORTANT NODE: Wire.begin() must be called before MPR121 initialization
  */
 MPR121::MPR121(byte _irqpin, boolean _useInterrupt, byte _address) {
+  initialized = false;
   init(_irqpin, _useInterrupt, _address);
 }
 
 MPR121::MPR121(byte _irqpin, boolean _useInterrupt) {
+  initialized = false;
   init(_irqpin, _useInterrupt, START_ADDRESS);
 }
 
 void MPR121::init(byte _irqpin, boolean _useInterrupt, byte _address) {
+  if (initialized) {
+    DEBUG_ERR("PixelUtil::init already initialized");
+    DEBUG_ERR_STATE(DEBUG_ERR_REINIT);
+    // XXX - Could re-init the pixels?
+  } else {
+
   triggered = true;
 
   irqpin = _irqpin;
@@ -77,6 +86,8 @@ void MPR121::init(byte _irqpin, boolean _useInterrupt, byte _address) {
       break;
     }
   }
+  }
+  initialized = true;
 
   DEBUG_VALUE(DEBUG_MID, "MPR121: Initialized.  IRQ=", irqpin);
   DEBUG_VALUELN(DEBUG_MID, " useInterrupt=", useInterrupt);

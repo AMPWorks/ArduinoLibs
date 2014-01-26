@@ -80,6 +80,7 @@
 #define DEBUG_ERR_MALLOC  0x10
 #define DEBUG_ERR_UNINIT  0x11
 #define DEBUG_ERR_INVALID 0x12
+#define DEBUG_ERR_REINIT 0x12
 
 #define DEBUG_ERR_STATE(x) debug_err_state(x);
 

@@ -81,7 +81,7 @@ class MPR121
    */
   MPR121(byte irqpin, boolean interrupt, byte address);
   MPR121(byte irqpin, boolean interrupt);
-
+  void init(byte irqpin, boolean interrupt, byte address);
 
   boolean readTouchInputs();
   boolean touched(byte sensor);
@@ -99,10 +99,9 @@ class MPR121
   boolean triggered;
   boolean useInterrupt;
  private:
+  boolean initialized;
   byte address;
   byte irqpin;
-
-  void init(byte irqpin, boolean interrupt, byte address);
 
   boolean touchStates[MAX_SENSORS];
   boolean prevStates[MAX_SENSORS];
