@@ -53,7 +53,9 @@ void PixelUtil::setPixelRGB(uint16_t led, uint32_t color)
 }
 
 void PixelUtil::setPixelRGB(RGB *rgb) {
-  pixels.setPixelColor(rgb->pixel, rgb->color());
+  if (rgb->pixel < numPixels()) {
+    pixels.setPixelColor(rgb->pixel, rgb->color());
+  }
 }
 
 uint32_t PixelUtil::getColor(uint16_t led) {
