@@ -57,8 +57,6 @@
     x; \
   }
 
-  #define DEBUG_ERR_STATE(x) debug_err_state(x);
-
   #define DEBUG_MEMORY(v)  if (v <= DEBUG_LEVEL) {     \
     debug_print_memory(); \
   }
@@ -69,16 +67,21 @@
   #define DEBUG_WRITE(v, x)
   #define DEBUG_COMMAND(x)
   #define DEBUG_VALUE(v, x, y)
+  #define DEBUG_HEX(v, x)
   #define DEBUG_HEXVAL(v, x, y)
   #define DEBUG_VALUELN(v, x, y)
   #define DEBUG_PRINT_END()
   #define DEBUG_ERR(x)
-  #define DEBUG_ERR_STATE(x)
+  #define DEBUG_COMMAND(v, x)
   #define DEBUG_MEMORY(v)
 #endif
 
 /* Error codes */
-#define DEBUG_ERR_MALLOC 0x10
+#define DEBUG_ERR_MALLOC  0x10
+#define DEBUG_ERR_UNINIT  0x11
+#define DEBUG_ERR_INVALID 0x12
+
+#define DEBUG_ERR_STATE(x) debug_err_state(x);
 
 /* Flash an error code */
 void debug_err_state(int code);
