@@ -16,38 +16,60 @@ RS485Socket::RS485Socket() {
   xmitPin = 0;
   enablePin = 0;
   initialized = false;
+  serial = NULL;
+  channel = NULL;
 }
 
 RS485Socket::RS485Socket(byte _recvPin, byte _xmitPin, byte _enablePin) 
 {
-  RS485Socket(_recvPin, _xmitPin, _enablePin, false);
+  initialized = false;
+  init(_recvPin, _xmitPin, _enablePin, false);
 }
 
 RS485Socket::RS485Socket(byte _recvPin, byte _xmitPin, byte _enablePin,
                          boolean _debug) 
 {
-  initialized = true;
-  recvPin = _recvPin;
-  xmitPin = _xmitPin;
-  enablePin = _enablePin;
-  debug = _debug;
+  initialized = false;
+  init(_recvPin, _xmitPin, _enablePin, _debug);
+}
 
-  serial = new SoftwareSerial(recvPin, xmitPin);
-  if (debug) {
-    channel = new RS485(serialDebugRead, serialAvailable, serialDebugWrite,
-                        RS485_RECV_BUFFER);
+void RS485Socket::init(byte _recvPin, byte _xmitPin, byte _enablePin,
+		       boolean _debug) {
+  if (initialized) {
+    DEBUG_ERR("PixelUtil::init already initialized");
+    DEBUG_ERR_STATE(DEBUG_ERR_REINIT);
+    // XXX - Could re-init the pixels?
   } else {
-    channel = new RS485(serialRead, serialAvailable, serialWrite,
-                        RS485_RECV_BUFFER);
+    recvPin = _recvPin;
+    xmitPin = _xmitPin;
+    enablePin = _enablePin;
+    debug = _debug;
+
+    serial = new SoftwareSerial(recvPin, xmitPin);
+    if (debug) {
+      //    DEBUG_ERR("XXX: Setting up channel");
+      channel = new RS485(serialDebugRead, serialAvailable, serialDebugWrite,
+			  RS485_RECV_BUFFER);
+    } else {
+      channel = new RS485(serialRead, serialAvailable, serialWrite,
+			  RS485_RECV_BUFFER);
+    }
+
+    currentMsgID = 0;
   }
 
-  currentMsgID = 0;
+  initialized = true;
 }
 
 void RS485Socket::setup() 
 {
-  
+  if (!initialized) {
+    DEBUG_ERR("RS485Socket::setup called before initialized");
+    DEBUG_ERR_STATE(DEBUG_ERR_UNINIT);
+  }
+
   serial->begin(28800); // XXX - Could this be a higher rate?
+
   channel->begin();
   
   pinMode(enablePin, OUTPUT);
@@ -111,11 +133,14 @@ void RS485Socket::sendMsgTo(byte address,
     DEBUG_VALUE(DEBUG_HIGH, "XMIT:", msg_len);
     DEBUG_PRINT(DEBUG_HIGH, " ");
     printSocketMsg(msg);
+    DEBUG_PRINT(DEBUG_HIGH, " raw:");
   }
 
   digitalWrite(enablePin, HIGH);
   channel->sendMsg((byte *)msg, msg_len);
   digitalWrite(enablePin, LOW);
+
+  if (debug) DEBUG_PRINT_END();
 }
 
 const byte *RS485Socket::getMsg(byte address, unsigned int *retlen) 
@@ -160,10 +185,11 @@ byte RS485Socket::getLength()
 
 void printSocketMsg(const rs485_socket_msg_t *msg) 
 {
-DEBUG_HEXVAL(DEBUG_HIGH, "i:", msg->hdr.ID);
-DEBUG_HEXVAL(DEBUG_HIGH, " l:", msg->hdr.length);
-DEBUG_HEXVAL(DEBUG_HIGH," a:", msg->hdr.address);
-DEBUG_HEXVAL(DEBUG_HIGH, " f:", msg->hdr.flags);
+  DEBUG_HEXVAL(DEBUG_HIGH, "i:",  msg->hdr.ID);
+  DEBUG_HEXVAL(DEBUG_HIGH, " l:", msg->hdr.length);
+  DEBUG_HEXVAL(DEBUG_HIGH, " a:", msg->hdr.address);
+  DEBUG_HEXVAL(DEBUG_HIGH, " f:", msg->hdr.flags);
+  DEBUG_PRINT(DEBUG_HIGH, " data:");
 printBuffer(msg->data, msg->hdr.length);
 }
 

@@ -6,7 +6,7 @@
 #include <RS485_non_blocking.h>
 #include <SoftwareSerial.h>
 
-#define RS485_RECV_BUFFER 255
+#define RS485_RECV_BUFFER 64 // XXX: This is a lot of buffer space
 
 typedef struct {
   byte ID;
@@ -29,7 +29,8 @@ class RS485Socket
   RS485Socket();
   RS485Socket(byte _recvPin, byte _xmitPin, byte _enablePin);
   RS485Socket(byte _recvPin, byte _xmitPin, byte _enablePin, boolean debug);
-  
+  void init(byte _recvPin, byte _xmitPin, byte _enablePin, boolean _debug);
+
   void setup();
   byte * initBuffer(byte * data);
 
@@ -39,7 +40,7 @@ class RS485Socket
 
   boolean initialized;
 
-  private:
+ private:
   byte recvPin, xmitPin, enablePin;
   byte currentMsgID;
   boolean debug;
