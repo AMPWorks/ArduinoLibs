@@ -35,7 +35,8 @@ void setup() {
 
   touch = MPR121(
 		 IRQ_PIN,       // triggered/interupt pin
-		 false          // interrupt mode?
+		 false,         // interrupt mode?
+		 true           // use touch times
 		 );
 
   pinMode(DEBUG_LED, OUTPUT);

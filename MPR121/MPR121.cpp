@@ -24,22 +24,25 @@ MPR121::MPR121() {
   triggered = false;
   useInterrupt = false;
   irqpin = false;
+  touchTimes = NULL;
 }
 
 /*
  * IMPORTANT NODE: Wire.begin() must be called before MPR121 initialization
  */
-MPR121::MPR121(byte _irqpin, boolean _useInterrupt, byte _address) {
+MPR121::MPR121(byte _irqpin, boolean _useInterrupt, byte _address,
+	       boolean times) {
   initialized = false;
-  init(_irqpin, _useInterrupt, _address);
+  init(_irqpin, _useInterrupt, _address, times);
 }
 
-MPR121::MPR121(byte _irqpin, boolean _useInterrupt) {
+MPR121::MPR121(byte _irqpin, boolean _useInterrupt, boolean times) {
   initialized = false;
-  init(_irqpin, _useInterrupt, START_ADDRESS);
+  init(_irqpin, _useInterrupt, START_ADDRESS, times);
 }
 
-void MPR121::init(byte _irqpin, boolean _useInterrupt, byte _address) {
+void MPR121::init(byte _irqpin, boolean _useInterrupt, byte _address,
+		  boolean times) {
   if (initialized) {
     DEBUG_ERR("PixelUtil::init already initialized");
     DEBUG_ERR_STATE(DEBUG_ERR_REINIT);
@@ -52,10 +55,16 @@ void MPR121::init(byte _irqpin, boolean _useInterrupt, byte _address) {
   useInterrupt = _useInterrupt;
   address = _address;
 
-  for (int i = 0; i < MAX_SENSORS; i++) {
-    touchStates[i] = false;
-    prevStates[i] = false;
-    touchTimes[i] = 0;
+  touchStates = 0;
+  prevStates = 0;
+
+  if (times) {
+    touchTimes = (unsigned long *)malloc(sizeof(unsigned long) * MAX_SENSORS);
+    for (int i = 0; i < MAX_SENSORS; i++) {
+      touchTimes[i] = 0;
+    }
+  } else {
+    touchTimes = NULL;
   }
 
   pinMode(irqpin, INPUT);
@@ -222,17 +231,17 @@ void MPR121::setDebounce(byte trigger, byte release) {
 
 /* Return the value of the sensor from the most recent check */
 boolean MPR121::touched(byte sensor) {
-  return touchStates[sensor];
+  return ((touchStates & (1 << sensor)) != 0);
 }
 
 /* Return the value of the sensor from the previous check */
 boolean MPR121::previous(byte sensor) {
-  return prevStates[sensor];
+  return ((prevStates & (1 << sensor)) != 0);
 }
 
 /* Check if the sensor value changed from the previous check */
 boolean MPR121::changed(byte sensor) {
-  return (touchStates[sensor] != prevStates[sensor]);
+  return (touched(sensor) != previous(sensor));
 }
 
 /*
@@ -240,7 +249,8 @@ boolean MPR121::changed(byte sensor) {
  * the total time from the last touch period.
  */
 unsigned long MPR121::touchTime(byte sensor) {
-  if (touchStates[sensor]) {
+  if (touchTimes == NULL) return 0;
+  if (touched(sensor)) {
     return millis() - touchTimes[sensor];
   } else {
     return touchTimes[sensor];
@@ -261,9 +271,7 @@ boolean MPR121::readTouchInputs() {
    * previous call and so should be updated regardless of whether IRQ was
    * triggered.
    */
-  for (int i = 0; i < MAX_SENSORS; i++) {
-    prevStates[i] = touchStates[i];
-  }
+  prevStates = touchStates;
 
   if (triggered) {
     triggered = false;
@@ -275,35 +283,37 @@ boolean MPR121::readTouchInputs() {
     byte MSB = Wire.read();
 
     // 16bits that make up the touch states
-    uint16_t touched = ((MSB << 8) | LSB);
+    touchStates = ((MSB << 8) | LSB);
 
-    for  (int i = 0; i < 12; i++) {  // Check what electrodes were pressed
-      if (touched & (1 << i)){
-	DEBUG_COMMAND(DEBUG_TRACE,
-		      if (touchStates[i] == 0) {
-			//pin i was just touched
-			DEBUG_VALUELN(DEBUG_TRACE, "Touched pin ", i);
-		      }
-		      );
-	touchStates[i] = true;
-
-	if (!prevStates[i]) {
-	  /* Changed from not-touched to touch, record the time */
-	  touchTimes[i] = millis();
+    DEBUG_COMMAND(DEBUG_TRACE,
+      for  (int i = 0; i < MAX_SENSORS; i++) {  // Check what electrodes were pressed
+	if (touched(i)){
+	  if (!previous(i)) {
+	    //pin i was just touched
+	    DEBUG_VALUELN(DEBUG_TRACE, "Touched pin ", i);
+	  }
+	} else {
+	  if (touched(i)) {
+	    //pin i is no longer being touched
+	    DEBUG_VALUELN(DEBUG_TRACE, "Released pin ", i);
+	  }
 	}
+      }
+		  );
 
-      } else {
-	DEBUG_COMMAND(DEBUG_TRACE,
-		      if (touchStates[i] == 1) {
-			//pin i is no longer being touched
-			DEBUG_VALUELN(DEBUG_TRACE, "Released pin ", i);
-		      }
-		      );
-        touchStates[i] = false;
+    if (touchTimes) {
+      for  (int i = 0; i < MAX_SENSORS; i++) {
+	if (touched(i)) {
+	  if (!previous(i)) {
+	    /* Changed from not-touched to touch, record the time */
+	    touchTimes[i] = millis();
+	  }
 
-	if (prevStates[i]) {
-	  /* Changed from touched to not-touch, record the total touched time */
-	  touchTimes[i] = millis() - touchTimes[i];
+	} else {
+	  if (previous(i)) {
+	    /* Changed from touched to not-touch, record the total touched time */
+	    touchTimes[i] = millis() - touchTimes[i];
+	  }
 	}
       }
     }
