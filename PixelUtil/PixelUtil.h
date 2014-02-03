@@ -4,15 +4,6 @@
 #include "SPI.h"
 #include "Adafruit_WS2801.h"
 
-typedef union {
-#define RED 2
-#define GREEN 1
-#define BLUE 0
-#define UNUSED 3
-  byte argb[4];
-  uint32_t color;
-} color_t;
-
 class RGB {
  public:
   RGB();
@@ -20,19 +11,12 @@ class RGB {
 
   void setColor(byte r, byte g, byte b);
   void setColor(uint32_t c);
-
   void incrColor(int r, int g, int b);
-  void incrNext(int r, int g, int b);
 
-  byte red();
-  byte green();
-  byte blue();
   uint32_t color();
 
   uint16_t pixel;
-
- private:
-  color_t c;
+  byte red, green, blue;
 };
 
 class PixelUtil 
@@ -46,8 +30,6 @@ class PixelUtil
   void init(uint16_t numPixels, uint8_t dataPin, uint8_t clockPin,
 	    uint8_t order=WS2801_RGB);
   
-  uint32_t pixelColor(byte r, byte g, byte b);
-
   uint16_t numPixels();
   void setPixelRGB(uint16_t led, byte r, byte g, byte b);
   void setPixelRGB(uint16_t led, uint32_t color);

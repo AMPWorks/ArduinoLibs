@@ -6,7 +6,7 @@
 #include "SPI.h"
 #include "Adafruit_WS2801.h"
 
-#define DEBUG_LEVEL DEBUG_HIGH
+//#define DEBUG_LEVEL DEBUG_HIGH
 #include "Debug.h"
 
 #include "PixelUtil.h"
@@ -46,21 +46,9 @@ uint16_t PixelUtil::numPixels()
   return pixels->numPixels();
 }
 
-/* Construct a 32bit value from 8bit RGB values */
-uint32_t PixelUtil::pixelColor(byte r, byte g, byte b)
-{
-  uint32_t c;
-  c = r;
-  c <<= 8;
-  c |= g;
-  c <<= 8;
-  c |= b;
-  return c;
-}
-
 void PixelUtil::setPixelRGB(uint16_t led, byte r, byte g, byte b)
 {
-  pixels->setPixelColor(led, pixelColor(r, g, b));
+  pixels->setPixelColor(led, pixel_color(r, g, b));
 }
 
 void PixelUtil::setPixelRGB(uint16_t led, uint32_t color)
@@ -166,54 +154,41 @@ RGB::RGB(byte r, byte g, byte b) {
 }
 
 void RGB::setColor(byte r, byte g, byte b) {
-  c.argb[RED] = r;
-  c.argb[GREEN] = g;
-  c.argb[BLUE] = b;
-  c.argb[UNUSED] = 0;
+  red = r;
+  green = g;
+  blue = b;
 }
 
 void RGB::setColor(uint32_t color) {
-  c.color = color;
+  setColor(pixel_red(color), pixel_green(color), pixel_blue(color));
 }
 
 void RGB::incrColor(int r, int g, int b) {
-  if ((r > 0) && (255 - r < c.argb[RED] )) c.argb[RED] = 255;
-  else if ((r < 0) && (0 - r > c.argb[RED])) c.argb[RED] = 0;
-  else c.argb[RED] += r;
+  if ((r > 0) && (255 - r < red )) red = 255;
+  else if ((r < 0) && (0 - r > red)) red = 0;
+  else red += r;
 
-  if ((g > 0) && (255 - g < c.argb[GREEN] )) c.argb[GREEN] = 255;
-  else if ((g < 0) && (0 - g > c.argb[GREEN])) c.argb[GREEN] = 0;
-  else c.argb[GREEN] += g;
+  if ((g > 0) && (255 - g < green )) green = 255;
+  else if ((g < 0) && (0 - g > green)) green = 0;
+  else green += g;
 
-  if ((b > 0) && (255 - b < c.argb[BLUE] )) c.argb[BLUE] = 255;
-  else if ((b < 0) && (0 - b > c.argb[BLUE])) c.argb[BLUE] = 0;
-  else c.argb[BLUE] += b;
-}
-
-byte RGB::red() {
-  return c.argb[RED];
-}
-
-byte RGB::green() {
-  return c.argb[GREEN];
-}
-
-byte RGB::blue() {
-  return c.argb[BLUE];
+  if ((b > 0) && (255 - b < blue )) blue = 255;
+  else if ((b < 0) && (0 - b > blue)) blue = 0;
+  else blue += b;
 }
 
 uint32_t RGB::color() {
-  return c.color;
+  return pixel_color(red, green, blue);
 }
 
-//void RGB::update() {
-  //  c.color = next.color;
-//}
-
+/*******************************************************************************
+ * Generic color manipulation functions
+ ******************************************************************************/
 
 /* Construct a 32bit value from 8bit RGB values */
 uint32_t pixel_color(byte r, byte g, byte b)
 {
+#if 0
   uint32_t c;
   c = r;
   c <<= 8;
@@ -221,6 +196,8 @@ uint32_t pixel_color(byte r, byte g, byte b)
   c <<= 8;
   c |= b;
   return c;
+#endif
+  return ((uint32_t)r << 16) | ((uint32_t)g << 8) | (uint32_t)b;
 }
 
 byte pixel_red(uint32_t color) {
@@ -284,7 +261,6 @@ uint32_t pixel_secondary(byte position) {
   }
   }
 }
-
 
 /* Return a color 'percent' of the way between the from and to colors */
 uint32_t fadeTowards(uint32_t from, uint32_t to, byte percent) {
