@@ -1,7 +1,7 @@
 /*
  * Written by Adam Phelps, amp@cs.stanford.edu, 2014
  *
- * This example parses the serial input, tokenizes it, and then princes each 
+ * This example parses the serial input, tokenizes it, and then prints each 
  * token.
  */
 #include <Arduino.h>

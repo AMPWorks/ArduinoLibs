@@ -6,7 +6,7 @@
 #include "SPI.h"
 #include "Adafruit_WS2801.h"
 
-//#define DEBUG_LEVEL DEBUG_HIGH
+#define DEBUG_LEVEL DEBUG_ERROR_ONLY //DEBUG_HIGH
 #include "Debug.h"
 
 #include "PixelUtil.h"
