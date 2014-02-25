@@ -2,7 +2,7 @@
 #include <RS485_non_blocking.h>
 #include <SoftwareSerial.h>
 
-#define DEBUG_LEVEL DEBUG_HIGH
+//#define DEBUG_LEVEL DEBUG_HIGH
 #include "Debug.h"
 
 #include "RS485Utils.h"
@@ -168,7 +168,7 @@ const byte *RS485Socket::getMsg(byte address, unsigned int *retlen)
       printSocketMsg(msg);
     }
 
-    if (msg->hdr.address == address) {
+    if ((msg->hdr.address == address) || (address == RS485_ADDR_ANY)) {
       *retlen = msg->hdr.length;
       return &msg->data[0];
     }

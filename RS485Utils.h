@@ -8,6 +8,8 @@
 
 #define RS485_RECV_BUFFER 64 // XXX: This is a lot of buffer space
 
+#define RS485_ADDR_ANY (byte)-1
+
 typedef struct {
   byte ID;
   byte length;
