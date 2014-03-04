@@ -262,6 +262,48 @@ uint32_t pixel_secondary(byte position) {
   }
 }
 
+/* 
+ * A pixel heat range, "evenly" distributed
+ *   Blue -> Green -> Red -> Yellow -> White
+ */
+uint32_t pixel_heat(byte position) {
+  if (position == 0) return 0;
+ 
+  uint16_t range = map(position, 1, 255, 0, 256 * 5);
+  byte offset = range % 256;
+  if (range < 256) {
+    return pixel_color(0,   0,   offset);
+  } else if (range < 256*2) {
+    return pixel_color(0,   offset, 255 - offset);
+  } else if (range < 256*3) {
+    return pixel_color(offset, 255 - offset,   0  );
+  } else if (range < 256*4) {
+    return pixel_color(255, offset, 0  );
+  } else {
+    return pixel_color(255, 255, offset);
+  }
+}
+
+/* 
+ * The same pixel heat range, but with full discrete colors
+ *   Blue -> Green -> Red -> Yellow -> White
+ */
+uint32_t pixel_heat_discreet(byte position) {
+  if (position == 0) return 0;
+  switch (map(position, 0, 255, 0, 4)) {
+  case 0: return pixel_color(0,   0,   255); break;
+  case 1: return pixel_color(0,   255, 0  ); break;
+  case 2: return pixel_color(255, 0,   0  ); break;
+  case 3: return pixel_color(255, 255, 0  ); break;
+  case 4: return pixel_color(255, 255, 255); break;
+  default : {
+    /* This should never be reached */
+    return 0;
+  }
+  }
+}
+
+
 /* Return a color 'percent' of the way between the from and to colors */
 uint32_t fadeTowards(uint32_t from, uint32_t to, byte percent) {
   int fromR = pixel_red(from);

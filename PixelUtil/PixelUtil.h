@@ -1,3 +1,4 @@
+
 #ifndef PIXELUTIL_H
 #define PIXELUTIL_H
 
@@ -60,6 +61,8 @@ uint32_t pixel_wheel(byte WheelPos);
 uint32_t pixel_wheel(byte WheelPos, byte max);
 uint32_t pixel_primary(byte position);
 uint32_t pixel_secondary(byte position);
+uint32_t pixel_heat(byte position);
+uint32_t pixel_heat_discrete(byte position);
 
 uint32_t fadeTowards(uint32_t from, uint32_t to, byte percent);
 
