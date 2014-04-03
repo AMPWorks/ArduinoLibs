@@ -17,10 +17,15 @@ typedef struct {
   byte flags;
 } rs485_socket_hdr_t;
 
+/* Calculate the total buffer size with a useable buffer of size x */
+#define RS485_BUFFER_TOTAL(x) (x + sizeof (rs485_socket_hdr_t))
+
 typedef struct {
   rs485_socket_hdr_t hdr;
   byte               data[];
 } rs485_socket_msg_t;
+
+#define RS485_HDR_FROM_DATA(x) ((rs485_socket_hdr_t *)((long)x - sizeof (rs485_socket_hdr_t)))
 
 void printSocketMsg(const rs485_socket_msg_t *msg);
 void printBuffer(const byte *buff, int length);

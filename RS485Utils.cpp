@@ -36,9 +36,9 @@ RS485Socket::RS485Socket(byte _recvPin, byte _xmitPin, byte _enablePin,
 void RS485Socket::init(byte _recvPin, byte _xmitPin, byte _enablePin,
 		       boolean _debug) {
   if (initialized) {
-    DEBUG_ERR("PixelUtil::init already initialized");
+    DEBUG_ERR("RS485Socket::init already initialized");
     DEBUG_ERR_STATE(DEBUG_ERR_REINIT);
-    // XXX - Could re-init the pixels?
+    // XXX - Could re-init the config?
   } else {
     recvPin = _recvPin;
     xmitPin = _xmitPin;
