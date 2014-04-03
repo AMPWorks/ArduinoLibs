@@ -141,3 +141,30 @@ int EEPROM_safe_read(int location, uint8_t *buff, int bufflen)
 
   return location;
 }
+
+/*
+ *  Shift all data in EEPROM starting at 'start_address', 'distance' bytes
+ */
+int EEPROM_shift(int start_address, int distance) {
+  // E2END is the last EEPROM address, for instance 1023 on the ATMega328 */
+
+  DEBUG_VALUE(DEBUG_LOW, "EEPROM_shift: start=", start_address);
+  DEBUG_VALUE(DEBUG_LOW, " distance=", distance);
+  DEBUG_VALUE(DEBUG_LOW, " E2END=", E2END);
+
+  if (abs(distance) >= E2END) DEBUG_ERR_STATE(1);
+
+  if (distance > 0) {
+    for (int current = E2END - distance; current >= start_address; current--) {
+      int write_address = current + distance;
+      byte val = EEPROM.read(current);
+      EEPROM.write(write_address, val);
+    }
+  } else if (distance < 0) {
+    for (int current = start_address; current <= E2END; current++) {
+      int write_address = current + distance;
+      byte val = EEPROM.read(current);
+      EEPROM.write(write_address, val);
+    }
+  }
+}

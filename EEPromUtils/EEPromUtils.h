@@ -14,6 +14,6 @@ int EEPROM_safe_write(int location, uint8_t *data, int datalen);
 
 int EEPROM_safe_read(int location, uint8_t *buff, int bufflen);
 
-
+int EEPROM_shift(int start_address, int distance);
 
 #endif
