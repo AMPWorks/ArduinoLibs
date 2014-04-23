@@ -83,6 +83,7 @@
   #define DEBUG_VALUE(v, x, y)
   #define DEBUG_HEX(v, x)
   #define DEBUG_HEXVAL(v, x, y)
+  #define DEBUG_HEXVALLN(v, x, y)
   #define DEBUG_VALUELN(v, x, y)
   #define DEBUG_PRINT_END()
   #define DEBUG_COMMAND(v, x)
