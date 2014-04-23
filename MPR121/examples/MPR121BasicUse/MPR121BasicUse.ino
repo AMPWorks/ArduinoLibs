@@ -157,6 +157,12 @@ void handleSerial(char *command) {
     int sensor = atoi(tokens[1]);
     int trigger = atoi(tokens[2]);
     int release = atoi(tokens[3]);
+    Serial.print("Setting threshold sensor=");
+    Serial.print(sensor);
+    Serial.print(" trig=");
+    Serial.print(trigger);
+    Serial.print(" rel=");
+    Serial.println(release);
     touch.setThreshold(sensor, trigger, release);
     break;
   }
