@@ -16,7 +16,12 @@ class RGB {
 
   uint32_t color();
 
+  //#define BIG_PIXELS // Uncomment to allow > 256 pixels
+#ifdef BIG_PIXELS
   uint16_t pixel;
+#else
+  uint8_t pixel;
+#endif
   byte red, green, blue;
 };
 
