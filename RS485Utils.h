@@ -8,12 +8,12 @@
 
 #define RS485_RECV_BUFFER 64 // XXX: This is a lot of buffer space
 
-#define RS485_ADDR_ANY (byte)-1
+#define RS485_ADDR_ANY (uint16_t)-1
 
 typedef struct {
   byte ID;
   byte length;
-  byte address;
+  uint16_t address;
   byte flags;
 } rs485_socket_hdr_t;
 
@@ -41,8 +41,8 @@ class RS485Socket
   void setup();
   byte * initBuffer(byte * data);
 
-  void sendMsgTo(byte address, const byte * data, const byte length);
-  const byte *getMsg(byte address, unsigned int *retlen);
+  void sendMsgTo(uint16_t address, const byte * data, const byte length);
+  const byte *getMsg(uint16_t address, unsigned int *retlen);
   byte getLength();
 
   boolean initialized;

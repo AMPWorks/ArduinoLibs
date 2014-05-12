@@ -115,7 +115,7 @@ byte * RS485Socket::initBuffer(byte * data)
   return data + sizeof (rs485_socket_hdr_t);
 }
 
-void RS485Socket::sendMsgTo(byte address,
+void RS485Socket::sendMsgTo(uint16_t address,
                             const byte *data,
                             const byte datalength) 
 {
@@ -143,7 +143,7 @@ void RS485Socket::sendMsgTo(byte address,
   if (debug) DEBUG_PRINT_END();
 }
 
-const byte *RS485Socket::getMsg(byte address, unsigned int *retlen) 
+const byte *RS485Socket::getMsg(uint16_t address, unsigned int *retlen) 
 {
 //  if (debug) Serial.print(F(".")); // Uncomment to print every call
   if (channel->update()) {
