@@ -7,4 +7,7 @@ void blink_value(int pin, int value, int period_ms, int idle_periods) ;
 /* Check if a pin is PWM */
 boolean pin_is_PWM(int pin);
 
+/* Print out a hexstring */
+void print_hex_string(const byte *bytes, int len);
+
 #endif

@@ -53,3 +53,13 @@ boolean pin_is_PWM(int pin)
         return false;
   }
 }
+
+
+
+/* Print out a hexstring */
+void print_hex_string(const byte *data, int len) {
+  for (int i = 0; i < len; i++) {
+    Serial.print(data[i], HEX);
+    Serial.print(" ");
+  }
+}
