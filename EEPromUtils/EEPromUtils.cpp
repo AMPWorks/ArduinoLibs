@@ -66,8 +66,6 @@ EEPROM_crc(uint8_t const data[], int datalen)
  * Returns the address of the byte after the last one written
  */
 int EEPROM_safe_write(int location, uint8_t *data, int datalen) {
-  int start = location;
-
   if (location + datalen + EEPROM_WRAPPER_SIZE >= EEPROM_MAX_ADDRESS) {
     DEBUG_ERR("EEPROM_safe_write: data exceeds max address");
     return -1;

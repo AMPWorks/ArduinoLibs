@@ -67,7 +67,7 @@
 
 // Default touch and release thresholds
 #define TOU_THRESH 0x0A
-#define	REL_THRESH 0x06
+#define	REL_THRESH 0x0F
 
 class MPR121
 {
