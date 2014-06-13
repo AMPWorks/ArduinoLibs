@@ -62,6 +62,14 @@ void PixelUtil::setPixelRGB(RGB *rgb) {
   }
 }
 
+void PixelUtil::setAllRGB(byte r, byte g, byte b)
+{
+  for (int led = 0; led < numPixels(); led++) {
+    pixels->setPixelColor(led, pixel_color(r, g, b));
+  }
+}
+
+
 uint32_t PixelUtil::getColor(uint16_t led) {
   return pixels->getPixelColor(led);
 }

@@ -40,6 +40,7 @@ class PixelUtil
   void setPixelRGB(uint16_t led, byte r, byte g, byte b);
   void setPixelRGB(uint16_t led, uint32_t color);
   void setPixelRGB(RGB *rgb);
+  void setAllRGB(byte r, byte g, byte b);
 
   uint32_t getColor(uint16_t led);
 
