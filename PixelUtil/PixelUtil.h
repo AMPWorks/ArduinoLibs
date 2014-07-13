@@ -58,8 +58,10 @@ class PixelUtil
   boolean initialized;
 };
 
-
+#define PIXEL_COLOR(r,g,b) \
+  (((uint32_t)r << 16) | ((uint32_t)g << 8) | (uint32_t)b)
 uint32_t pixel_color(byte r, byte g, byte b);
+
 byte pixel_red(uint32_t color);
 byte pixel_green(uint32_t color);
 byte pixel_blue(uint32_t color);

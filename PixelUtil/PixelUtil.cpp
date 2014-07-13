@@ -194,19 +194,12 @@ uint32_t RGB::color() {
  ******************************************************************************/
 
 /* Construct a 32bit value from 8bit RGB values */
+#ifndef pixel_color
 uint32_t pixel_color(byte r, byte g, byte b)
 {
-#if 0
-  uint32_t c;
-  c = r;
-  c <<= 8;
-  c |= g;
-  c <<= 8;
-  c |= b;
-  return c;
-#endif
-  return ((uint32_t)r << 16) | ((uint32_t)g << 8) | (uint32_t)b;
+  return PIXEL_COLOR(r,g,b);
 }
+#endif
 
 byte pixel_red(uint32_t color) {
   return ((color & 0x00FF0000) >> 16);
