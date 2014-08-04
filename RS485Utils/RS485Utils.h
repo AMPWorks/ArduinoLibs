@@ -6,7 +6,7 @@
 #include <RS485_non_blocking.h>
 #include <SoftwareSerial.h>
 
-#define RS485_RECV_BUFFER 64 // XXX: This is a lot of buffer space
+#define RS485_RECV_BUFFER 64 // 140 // XXX: This is a lot of buffer space
 
 #define RS485_ADDR_ANY (uint16_t)-1
 
@@ -36,7 +36,7 @@ class RS485Socket
   RS485Socket();
   RS485Socket(byte _recvPin, byte _xmitPin, byte _enablePin);
   RS485Socket(byte _recvPin, byte _xmitPin, byte _enablePin, boolean debug);
-  void init(byte _recvPin, byte _xmitPin, byte _enablePin, boolean _debug);
+  void init(byte _recvPin, byte _xmitPin, byte _enablePin, byte _recvsize, boolean _debug);
 
   void setup();
   byte * initBuffer(byte * data);

@@ -23,18 +23,18 @@ RS485Socket::RS485Socket() {
 RS485Socket::RS485Socket(byte _recvPin, byte _xmitPin, byte _enablePin) 
 {
   initialized = false;
-  init(_recvPin, _xmitPin, _enablePin, false);
+  init(_recvPin, _xmitPin, _enablePin, RS485_RECV_BUFFER, false);
 }
 
 RS485Socket::RS485Socket(byte _recvPin, byte _xmitPin, byte _enablePin,
                          boolean _debug) 
 {
   initialized = false;
-  init(_recvPin, _xmitPin, _enablePin, _debug);
+  init(_recvPin, _xmitPin, _enablePin, RS485_RECV_BUFFER, _debug);
 }
 
 void RS485Socket::init(byte _recvPin, byte _xmitPin, byte _enablePin,
-		       boolean _debug) {
+		       byte _recvsize, boolean _debug) {
   if (initialized) {
     DEBUG_ERR("RS485Socket::init already initialized");
     DEBUG_ERR_STATE(DEBUG_ERR_REINIT);
@@ -49,10 +49,10 @@ void RS485Socket::init(byte _recvPin, byte _xmitPin, byte _enablePin,
     if (debug) {
       //    DEBUG_ERR("XXX: Setting up channel");
       channel = new RS485(serialDebugRead, serialAvailable, serialDebugWrite,
-			  RS485_RECV_BUFFER);
+			  _recvsize);
     } else {
       channel = new RS485(serialRead, serialAvailable, serialWrite,
-			  RS485_RECV_BUFFER);
+			  _recvsize);
     }
 
     currentMsgID = 0;
