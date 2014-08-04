@@ -3,6 +3,18 @@ ArduinoLibs
 
 Various utility libraries.  In order to use these libraries each subdirectory should be linked into the global Arduino library directory and the Arduino software restarted.
 
+Setup
+-------------
+
+* Clone this repo into your Arduino folder
+* Execute ./setup.sh to create links to all libraries in your local libraries foler
+
+
+*******************************************************************************
+
+Library descriptions
+====================
+
 Pins
 ----
 
@@ -23,10 +35,6 @@ Debug
 
 Debug printing code
 
-*******************************************************************************
+....
 
-To Do
------
 
-* Convert class variables to _XXX
-* Figure out how to allow debug to be declared only from main file
