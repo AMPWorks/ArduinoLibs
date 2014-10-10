@@ -55,6 +55,18 @@ EEPROM_crc(uint8_t const data[], int datalen)
     return (remainder);
 }
 
+/*
+ * Write a value only after checking that it is a change
+ */
+boolean EEPROM_check_write(int location, uint8_t value) {
+  uint8_t current = EEPROM.read(location);
+  if (current != value) {
+    EEPROM.write(location, value);
+    return true;
+  } else {
+    return false;
+  }
+}
 
 /*
  * Write a value to EEPROM, including a start byte and CRC byte.
@@ -73,19 +85,22 @@ int EEPROM_safe_write(int location, uint8_t *data, int datalen) {
   
   crc_t crc = EEPROM_crc(data, datalen);
 
-  EEPROM.write(location++, EEPROM_START_BYTE);
-  EEPROM.write(location++, datalen);
+  int wrote_count = 0;
+
+  wrote_count += EEPROM_check_write(location++, EEPROM_START_BYTE);
+  wrote_count += EEPROM_check_write(location++, datalen);
   for (uint8_t i = 0; i < datalen; i++) {
-    EEPROM.write(location + i, *data);
+    wrote_count += EEPROM_check_write(location + i, *data);
     data++;
   }
   location += datalen;
-  EEPROM.write(location++, crc);
+  wrote_count += EEPROM_check_write(location++, crc);
 
   DEBUG_VALUE(DEBUG_HIGH, "EEPROM_safe_write: addr=", start);
   DEBUG_VALUE(DEBUG_HIGH, " data=", datalen);
   DEBUG_VALUE(DEBUG_HIGH, " all=", location - start);
-  DEBUG_VALUELN(DEBUG_HIGH, " ret=", location);
+  DEBUG_VALUE(DEBUG_HIGH, " ret=", location);
+  DEBUG_VALUELN(DEBUG_HIGH, " actual=", wrote_count);
 
   return location;
 }
