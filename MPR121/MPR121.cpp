@@ -33,78 +33,84 @@ MPR121::MPR121() {
 MPR121::MPR121(byte _irqpin, boolean _useInterrupt, byte _address,
 	       boolean times) {
   initialized = false;
-  init(_irqpin, _useInterrupt, _address, times);
+  init(_irqpin, _useInterrupt, _address, times, false);
+}
+
+MPR121::MPR121(byte _irqpin, boolean _useInterrupt, byte _address,
+               boolean times, boolean auto_enabled) {
+  initialized = false;
+  init(_irqpin, _useInterrupt, _address, times, auto_enabled);
 }
 
 MPR121::MPR121(byte _irqpin, boolean _useInterrupt, boolean times) {
   initialized = false;
-  init(_irqpin, _useInterrupt, START_ADDRESS, times);
+  init(_irqpin, _useInterrupt, START_ADDRESS, times, false);
 }
 
 void MPR121::init(byte _irqpin, boolean _useInterrupt, byte _address,
-		  boolean times) {
+                  boolean times, boolean auto_enabled) {
   if (initialized) {
     DEBUG_ERR("PixelUtil::init already initialized");
     DEBUG_ERR_STATE(DEBUG_ERR_REINIT);
     // XXX - Could re-init the pixels?
   } else {
 
-  triggered = true;
+    triggered = true;
 
-  irqpin = _irqpin;
-  useInterrupt = _useInterrupt;
-  address = _address;
+    irqpin = _irqpin;
+    useInterrupt = _useInterrupt;
+    address = _address;
 
-  touchStates = 0;
-  prevStates = 0;
+    touchStates = 0;
+    prevStates = 0;
 
-  if (times) {
-    touchTimes = (unsigned long *)malloc(sizeof(unsigned long) * MAX_SENSORS);
-    for (int i = 0; i < MAX_SENSORS; i++) {
-      touchTimes[i] = 0;
+    if (times) {
+      touchTimes = (unsigned long *)malloc(sizeof(unsigned long) * MAX_SENSORS);
+      for (int i = 0; i < MAX_SENSORS; i++) {
+        touchTimes[i] = 0;
+      }
+    } else {
+      touchTimes = NULL;
     }
-  } else {
-    touchTimes = NULL;
-  }
 
-  pinMode(irqpin, INPUT);
-  digitalWrite(irqpin, HIGH); //enable pullup resistor XXX: Is this needed with interrupts?
+    pinMode(irqpin, INPUT);
+    digitalWrite(irqpin, HIGH); //enable pullup resistor XXX: Is this needed with interrupts?
 
-  if (useInterrupt) {
-    /* Register the interrupt handler */
-    switch (irqpin) {
-      //XXX - Check if the nano shows up at all for the board type?
-    case INTERUPT_0_PIN: {
-      cap[0] = this;
-      attachInterrupt(0, irqTriggered0, RISING);
-      break;
+    if (useInterrupt) {
+      /* Register the interrupt handler */
+      switch (irqpin) {
+        //XXX - Check if the nano shows up at all for the board type?
+      case INTERUPT_0_PIN: {
+        cap[0] = this;
+        attachInterrupt(0, irqTriggered0, RISING);
+        break;
+      }
+      case INTERUPT_1_PIN: {
+        cap[1] = this;
+        attachInterrupt(1, irqTriggered1, RISING);
+        break;
+      }
+      default:
+        /*
+         * If the pin specified is not a known interupt pin then allow this to
+         * work anyway.
+         */
+        DEBUG_ERR("Specified pin is not an interrupt");
+        DEBUG_ERR_STATE(13);
+        useInterrupt = false;
+        break;
+      }
     }
-    case INTERUPT_1_PIN: {
-      cap[1] = this;
-      attachInterrupt(1, irqTriggered1, RISING);
-      break;
-    }
-    default:
-      /*
-       * If the pin specified is not a known interupt pin then allow this to
-       * work anyway.
-       */
-      DEBUG_ERR("Specified pin is not an interrupt");
-      DEBUG_ERR_STATE(13);
-      useInterrupt = false;
-      break;
-    }
-  }
   }
   initialized = true;
 
   DEBUG_VALUE(DEBUG_MID, "MPR121: Initialized.  IRQ=", irqpin);
   DEBUG_VALUELN(DEBUG_MID, " useInterrupt=", useInterrupt);
 
-  initialize();
+  initialize(auto_enabled);
 }
 
-void MPR121::initialize(void) {
+void MPR121::initialize(boolean auto_enabled) {
 
   // Clear registers for the case where the chip is being configured again
   // without the power being reset
@@ -174,12 +180,12 @@ void MPR121::initialize(void) {
   
   // Section F
   // Enable Auto Config and auto Reconfig
-  /*
+  if (auto_enabled) {
     set_register(ATO_CFG0, 0x0B);
     set_register(ATO_CFGU, 0xC9);  // USL = (Vdd-0.7)/vdd*256 = 0xC9 @3.3V
     set_register(ATO_CFGL, 0x82);  // LSL = 0.65*USL = 0x82 @3.3V
     set_register(ATO_CFGT, 0xB5);  // Target = 0.9*USL = 0xB5 @3.3V
-  */
+  }
   
   set_register(ELE_CFG, 0x0C);
 }
@@ -277,7 +283,7 @@ boolean MPR121::readTouchInputs() {
     triggered = false;
 
     // read the touch state from the MPR121
-    Wire.requestFrom(0x5A, 2);
+    Wire.requestFrom(address, 2);
 
     byte LSB = Wire.read();
     byte MSB = Wire.read();
@@ -353,3 +359,72 @@ boolean MPR121::read_register(uint8_t r, byte* result) {
     return false;
   }
 }
+
+/******************************************************************************
+ * Class to track the state history of a sensor array
+ */
+
+MPR121_State::MPR121_State(MPR121 *_sensor, uint16_t _sensor_map) {
+  sensor = _sensor;
+  sensor_map = _sensor_map;
+  for (int i = 0; i < MPR121::MAX_SENSORS; i++) {
+    sensor_states[i] = 0;
+    tap_times[i] = 0;
+  }
+}
+
+void MPR121_State::updateState(void) {
+  unsigned long now = millis();
+
+  for (int i = 0; i < MPR121::MAX_SENSORS; i++) {
+    if (sensor_map & (1 << i)) {
+      uint8_t new_state = 0;
+
+      if (sensor->touched(i)) new_state |= SENSE_TOUCH;
+      if (sensor->changed(i)) new_state |= SENSE_CHANGE;
+ 
+      if (checkTapped(i)) {
+        // Detect double tap
+        if (now - tap_times[i] < DOUBLE_TAP_MS) {
+          new_state |= SENSE_DOUBLE;
+          DEBUG_VALUE(DEBUG_HIGH, "Double tap:", i);
+          DEBUG_VALUELN(DEBUG_HIGH, " ms:", now - tap_times[i]);
+        }
+        tap_times[i] = now;
+      }
+
+      if (checkHeld(i)) {
+        // Detect long touch
+        if ((tap_times[i] != 0) && (now - tap_times[i] > LONG_TOUCH_MS)) {
+          new_state |= SENSE_LONG;
+          DEBUG_VALUE(DEBUG_HIGH, "Long touch:", i);
+          DEBUG_VALUELN(DEBUG_HIGH, " ms:", now - tap_times[i]);
+          tap_times[i] = 0;
+        }
+      }
+
+      sensor_states[i] = new_state;
+    }
+  }
+}
+
+boolean MPR121_State::checkTouched(byte s) {
+  return (sensor_states[s] & SENSE_TOUCH);
+}
+
+boolean MPR121_State::checkChanged(byte s) {
+  return (sensor_states[s] & SENSE_CHANGE);
+}
+
+boolean MPR121_State::checkTapped(byte s) {
+  return ((sensor_states[s] & SENSE_TOUCH) && (sensor_states[s] & SENSE_CHANGE));
+}
+
+boolean MPR121_State::checkReleased(byte s) {
+  return (!(sensor_states[s] & SENSE_TOUCH) && (sensor_states[s] & SENSE_CHANGE));
+}
+
+boolean MPR121_State::checkHeld(byte s) {
+  return ((sensor_states[s] & SENSE_TOUCH) && !(sensor_states[s] & SENSE_CHANGE));
+}
+

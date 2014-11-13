@@ -79,9 +79,12 @@ class MPR121
   /*
    * IMPORTANT NODE: Wire.begin() must be called before MPR121 initialization
    */
-  MPR121(byte irqpin, boolean interrupt, byte address, boolean times);
   MPR121(byte irqpin, boolean interrupt, boolean times);
-  void init(byte irqpin, boolean interrupt, byte address, boolean times);
+  MPR121(byte irqpin, boolean interrupt, byte address, boolean times);
+  MPR121(byte irqpin, boolean interrupt, byte address, boolean times,
+         boolean auto_enabled);
+  void init(byte irqpin, boolean interrupt, byte address, boolean times, 
+            boolean auto_enabled);
 
   boolean readTouchInputs();
   boolean touched(byte sensor);
@@ -107,7 +110,7 @@ class MPR121
   uint16_t prevStates;
   unsigned long *touchTimes;
 
-  void initialize();
+  void initialize(boolean auto_enabled);
   void checkInterrupt();
 };
 
@@ -138,6 +141,13 @@ class MPR121
 #define INTERUPT_3_PIN 1
 #define INTERUPT_4_PIN 7
 #define INTERUPT_5_PIN -1
+#elif defined(__AVR_ATmega1284P__)
+#define INTERUPT_0_PIN 10
+#define INTERUPT_1_PIN 11
+#define INTERUPT_2_PIN  2
+#define INTERUPT_3_PIN -1
+#define INTERUPT_4_PIN -1
+#define INTERUPT_5_PIN -1
 #else
 XXX - This board needs to be defined
 #define INTERUPT_0_PIN -1
@@ -147,5 +157,37 @@ XXX - This board needs to be defined
 #define INTERUPT_4_PIN -1
 #define INTERUPT_5_PIN -1
 #endif
+
+/******************************************************************************
+ * Class to track the state history of a sensor array
+ */
+
+class MPR121_State {
+ public:
+  MPR121_State(MPR121 *_sensor, uint16_t _sensor_map);
+
+  void updateState(void);
+
+  boolean checkTouched(byte s);
+  boolean checkChanged(byte s);
+  boolean checkTapped(byte s);
+  boolean checkReleased(byte s);
+  boolean checkHeld(byte s);
+
+  static const uint8_t SENSE_TOUCH  = 0x01;
+  static const uint8_t SENSE_CHANGE = 0x02;
+  static const uint8_t SENSE_DOUBLE = 0x04;
+  static const uint8_t SENSE_LONG   = 0x08;
+
+  static const uint16_t DOUBLE_TAP_MS = 750;
+  static const uint16_t LONG_TOUCH_MS = 750;
+
+ private:
+  MPR121 *sensor;
+  uint16_t sensor_map;
+  uint8_t sensor_states[MPR121::MAX_SENSORS];  // XXX - Should be configurable
+  uint32_t tap_times[MPR121::MAX_SENSORS];
+};
+
 
 #endif
