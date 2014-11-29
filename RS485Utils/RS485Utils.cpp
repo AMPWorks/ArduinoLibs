@@ -61,17 +61,18 @@ void RS485Socket::init(byte _recvPin, byte _xmitPin, byte _enablePin,
     enablePin = _enablePin;
     sourceAddress = _address;
     debug = _debug;
+    recvLimit = _recvsize;
 
     serial = new SoftwareSerial(recvPin, xmitPin);
 #if DEBUG_LEVEL == DEBUG_HIGH
     if (debug) {
       channel = new RS485(serialDebugRead, serialAvailable, serialDebugWrite,
-			  _recvsize);
+			  recvLimit);
     } else
 #endif
     {
       channel = new RS485(serialRead, serialAvailable, serialWrite,
-			  _recvsize);
+			  recvLimit);
     }
 
     currentMsgID = 0;
@@ -194,7 +195,7 @@ const byte *RS485Socket::getMsg(uint16_t address, unsigned int *retlen)
     }
 #endif
 
-    if ((msg->hdr.address == address) || (address == RS485_ADDR_ANY)) {
+    if ((msg->hdr.address == address) || (msg->hdr.address == RS485_ADDR_ANY)) {
       *retlen = msg->hdr.length;
       return &msg->data[0];
     }
