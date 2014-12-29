@@ -16,3 +16,5 @@ This code was initially based on the MPR121 example code provided by Sparkfun: h
 Future work
 -----------
 * Integrate additional functionality from the Adafruit library (https://github.com/adafruit/Adafruit_MPR121_Library)
+* Access to non-autoleveled data
+* Deal with the simulated 13th channel proximity sensor

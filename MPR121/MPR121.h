@@ -1,19 +1,28 @@
+/*
+ * Library for intacting with MPR121 12-channel capacitive touch sensors
+ *
+ * This code was initially based on the MPR121 example code provided by 
+ * Sparkfun: https://github.com/sparkfun/MPR121_Capacitive_Touch_Breakout/tree/master/Firmware/MPR121Q/Arduino%20Sketch
+ *
+ *
+ * Original MPR121.h
+ *   April 8, 2010
+ *   by: Jim Lindblom
+ *
+ * Library conversion and continuing improvements
+ *   October 31, 2013
+ *   by: Adam Phelps
+ */
+
+
+
 #ifndef MPR121_H
 #define MPR121_H
 
-/*
-    MPR121.h
-	April 8, 2010
-	by: Jim Lindblom
-
-    Library conversion
-        October 31, 2013
-        by: Adam Phelps
-*/
-
-
 
 // MPR121 Register Defines
+#define BASELINE 0x1E
+
 #define MHD_R	0x2B
 #define NHD_R	0x2C
 #define	NCL_R 	0x2D
@@ -92,23 +101,27 @@ class MPR121
   boolean changed(byte sensor);
   unsigned long touchTime(byte sensor);
 
+  uint16_t getBaseline(byte sensor);
+  uint16_t getFiltered(byte sensor);
+
   /* Set configuration values */
   void setThreshold(byte sensor, byte trigger, byte release);
+  void setThresholds(byte trigger, byte release);
   void setDebounce(byte trigger, byte release);
 
   void set_register(uint8_t r, uint8_t v);
   boolean read_register(uint8_t r, byte* result);
 
-  boolean triggered;
-  boolean useInterrupt;
+  boolean triggered; // XXX - Combine booleans into bitflags
+  boolean useInterrupt; // XXX
  private:
-  boolean initialized;
+  boolean initialized; // XXX
   byte address;
   byte irqpin;
 
   uint16_t touchStates;
   uint16_t prevStates;
-  unsigned long *touchTimes;
+  unsigned long *touchTimes; // XXX - Uses 4bytes even when not used
 
   void initialize(boolean auto_enabled);
   void checkInterrupt();

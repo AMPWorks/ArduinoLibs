@@ -11,19 +11,20 @@
  * Arduino pins
  *   SCL  -> Analog 5 (I2C Clock)
  *   SDA  -> Analog 4 (I2C Data)
- *   IRQ  -> Digital 2
+ *   IRQ  -> Digital 3
  *   GND  -> GND
  *   3.3V -> 3.3V
  */
+
+//#define DEBUG_LEVEL DEBUG_HIGH
+#include <Debug.h>
 
 #include <Arduino.h>
 #include "MPR121.h"
 #include <Wire.h>
 
-#define DEBUG_LEVEL DEBUG_HIGH
-#include <Debug.h>
-
-#define IRQ_PIN 2
+#define I2C_ADDRESS 0x5A // 0x5A - 0x5D
+#define IRQ_PIN 3
 
 #define DEBUG_LED 13
 
@@ -31,33 +32,28 @@ MPR121 touch;
 
 void setup() {
   Serial.begin(9600);
+  Serial.println(F("MPR121 Basic Use initializing"));
+
   Wire.begin();
 
   touch = MPR121(
-		 IRQ_PIN,       // triggered/interupt pin
-		 false,         // interrupt mode?
-		 true           // use touch times
+                 IRQ_PIN,       // triggered/interupt pin
+                 false,         // interrupt mode?
+                 I2C_ADDRESS,   // START_ADDRESS = 0x5A
+                 true,          // use touch times
+                 false          // use auto config and reconfig
 		 );
 
   pinMode(DEBUG_LED, OUTPUT);
 
   /*
-   * Set touch and release thresholds
+   * Set default touch and release thresholds
    */
-  //  touch.setThreshold(0, 12, 1);
-  //  touch.setThreshold(1, 12, 15);
-  //  touch.setThreshold(2, 5, 10);
-  //  touch.setThreshold(3, 5, 10);
-  //  touch.setThreshold(4, 5, 10);
-  //  touch.setThreshold(5, 5, 10);
-  //  touch.setThreshold(6, 5, 10);
-  //  touch.setThreshold(7, 5, 10);
-  //  touch.setThreshold(8, 5, 10);
-  //  touch.setThreshold(9, 6, 2);
-  //  touch.setThreshold(10, 5, 10);
-  //  touch.setThreshold(11, 5, 10);
+  for (byte i = 0; i < MPR121::MAX_SENSORS; i++) {
+    touch.setThreshold(i, 15, 2);
+  }
 
-  Serial.println("MPR121 sensors initialized");
+  Serial.println(F("MPR121 sensor initialized"));
 }
 
 boolean debug_on = false;
@@ -67,17 +63,17 @@ void loop() {
     for (int i = 0; i < MPR121::MAX_SENSORS; i++) {
       if (touch.changed(i)) {
 
-	Serial.print("pin ");
-	Serial.print(i);
-	Serial.print(":");
+        Serial.print(F("pin "));
+        Serial.print(i);
+        Serial.print(F(":"));
 	
-	if (touch.touched(i)) {
-	  Serial.println(" Sensed");
-	} else {
-	  Serial.print(" Released after ");
-	  Serial.print(touch.touchTime(i));
-	  Serial.println(" ms ");
-	}
+        if (touch.touched(i)) {
+          Serial.println(F(" Sensed"));
+        } else {
+          Serial.print(F(" Released after "));
+          Serial.print(touch.touchTime(i));
+          Serial.println(" ms ");
+        }
       }
     }
 
@@ -141,7 +137,7 @@ void handleSerial(char *command) {
     if (*value_ptr == ' ') {
       token++;
       if (token > MAX_TOKENS) {
-	break;
+        break;
       }
 
       value_ptr++;
@@ -157,11 +153,11 @@ void handleSerial(char *command) {
     int sensor = atoi(tokens[1]);
     int trigger = atoi(tokens[2]);
     int release = atoi(tokens[3]);
-    Serial.print("Setting threshold sensor=");
+    Serial.print(F("Setting threshold sensor="));
     Serial.print(sensor);
-    Serial.print(" trig=");
+    Serial.print(F(" trig="));
     Serial.print(trigger);
-    Serial.print(" rel=");
+    Serial.print(F(" rel="));
     Serial.println(release);
     touch.setThreshold(sensor, trigger, release);
     break;
@@ -177,12 +173,12 @@ void handleSerial(char *command) {
     uint8_t reg = strtol(tokens[1], NULL, 16);
     byte value;
     if (touch.read_register(reg, &value)) {
-      Serial.print("Read register:0x");
+      Serial.print(F("Read register:0x"));
       Serial.print(reg, HEX);
-      Serial.print(" value:0x");
+      Serial.print(F(" value:0x"));
       Serial.println(value, HEX);
     } else {
-      Serial.print("Unable to read register:0x");
+      Serial.print(F("Unable to read register:0x"));
       Serial.println(reg, HEX);
     }
     break;
@@ -193,9 +189,9 @@ void handleSerial(char *command) {
     touch.set_register(ELE_CFG, 0x00);
     touch.set_register(reg, value);
     touch.set_register(ELE_CFG, 0x0C);
-    Serial.print("Set register:0x");
+    Serial.print(F("Set register:0x"));
     Serial.print(reg, HEX);
-    Serial.print(" value:0x");
+    Serial.print(F(" value:0x"));
     Serial.println(value, HEX);
     break;
   }

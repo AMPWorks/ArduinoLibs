@@ -1,3 +1,19 @@
+/*
+ * Library for intacting with MPR121 12-channel capacitive touch sensors
+ *
+ * This code was initially based on the MPR121 example code provided by 
+ * Sparkfun: https://github.com/sparkfun/MPR121_Capacitive_Touch_Breakout/tree/master/Firmware/MPR121Q/Arduino%20Sketch
+ *
+ *
+ * Original MPR121.h
+ *   April 8, 2010
+ *   by: Jim Lindblom
+ *
+ * Library conversion and continuing improvements
+ *   October 31, 2013
+ *   by: Adam Phelps
+ */
+
 #include <Arduino.h>
 #include <Wire.h>
 
@@ -50,9 +66,8 @@ MPR121::MPR121(byte _irqpin, boolean _useInterrupt, boolean times) {
 void MPR121::init(byte _irqpin, boolean _useInterrupt, byte _address,
                   boolean times, boolean auto_enabled) {
   if (initialized) {
-    DEBUG_ERR("PixelUtil::init already initialized");
+    DEBUG_ERR("MPR121::init already initialized");
     DEBUG_ERR_STATE(DEBUG_ERR_REINIT);
-    // XXX - Could re-init the pixels?
   } else {
 
     triggered = true;
@@ -191,37 +206,28 @@ void MPR121::initialize(boolean auto_enabled) {
 }
 
 void MPR121::setThreshold(byte sensor, byte trigger, byte release) {
-  byte trig;
-  byte rel;
-  switch (sensor) {
-  case 0: trig = ELE0_T; rel = ELE0_R; break;
-  case 1: trig = ELE1_T; rel = ELE1_R; break;
-  case 2: trig = ELE2_T; rel = ELE2_R; break;
-  case 3: trig = ELE3_T; rel = ELE3_R; break;
-  case 4: trig = ELE4_T; rel = ELE4_R; break;
-  case 5: trig = ELE5_T; rel = ELE5_R; break;
-  case 6: trig = ELE6_T; rel = ELE6_R; break;
-  case 7: trig = ELE7_T; rel = ELE7_R; break;
-  case 8: trig = ELE8_T; rel = ELE8_R; break;
-  case 9: trig = ELE9_T; rel = ELE9_R; break;
-  case 10: trig = ELE10_T; rel = ELE10_R; break;
-  case 11: trig = ELE11_T; rel = ELE11_R; break;
-  default: {
-    DEBUG_ERR("Specified sensor does not exist");
-    DEBUG_ERR_STATE(14);
-    return;
-  }
-  }
+  byte trig = ELE0_T + sensor * 2;
+  byte rel = ELE0_R + sensor * 2;
 
-  set_register(ELE_CFG, 0x00);
+  set_register(ELE_CFG, 0x00); // ??? Disable all electrodes
   set_register(trig, trigger);
   set_register(rel, release);
-  set_register(ELE_CFG, 0x0C);
+  set_register(ELE_CFG, 0x0C); // ??? Enable all electrodes
 
   DEBUG_VALUE(DEBUG_MID, "Set threshold- Sensor:", sensor);
   DEBUG_VALUE(DEBUG_MID, " trigger:", trigger);
   DEBUG_VALUELN(DEBUG_MID, " release:", release);
 }
+
+void MPR121::setThresholds(byte trigger, byte release) {
+  set_register(ELE_CFG, 0x00); // ??? Disable all electrodes
+  for (byte i = 0; i < MPR121::MAX_SENSORS; i++) {
+    set_register(ELE0_T + 2 * i, trigger);
+    set_register(ELE1_T + 2 * i, release);
+  }
+  set_register(ELE_CFG, 0x0C); // ??? Enable all electrodes
+}
+
 
 /* Set the debounce values, range for each is 0-7 */
 void MPR121::setDebounce(byte trigger, byte release) {
@@ -283,7 +289,7 @@ boolean MPR121::readTouchInputs() {
     triggered = false;
 
     // read the touch state from the MPR121
-    Wire.requestFrom(address, 2);
+    Wire.requestFrom(address, (byte)2);
 
     byte LSB = Wire.read();
     byte MSB = Wire.read();
@@ -292,35 +298,39 @@ boolean MPR121::readTouchInputs() {
     touchStates = ((MSB << 8) | LSB);
 
     DEBUG_COMMAND(DEBUG_TRACE,
-      for  (int i = 0; i < MAX_SENSORS; i++) {  // Check what electrodes were pressed
-	if (touched(i)){
-	  if (!previous(i)) {
-	    //pin i was just touched
-	    DEBUG_VALUELN(DEBUG_TRACE, "Touched pin ", i);
-	  }
-	} else {
-	  if (touched(i)) {
-	    //pin i is no longer being touched
-	    DEBUG_VALUELN(DEBUG_TRACE, "Released pin ", i);
-	  }
-	}
-      }
-		  );
+                  // Check what electrodes were pressed
+                  for  (int i = 0; i < MAX_SENSORS; i++) {
+                    if (touched(i)){
+                      if (!previous(i)) {
+                        //pin i was just touched
+                        DEBUG_VALUELN(DEBUG_TRACE, "Touched pin ", i);
+                      }
+                    } else {
+                      if (touched(i)) {
+                        //pin i is no longer being touched
+                        DEBUG_VALUELN(DEBUG_TRACE, "Released pin ", i);
+                      }
+                    }
+                  }
+                  );
 
     if (touchTimes) {
-      for  (int i = 0; i < MAX_SENSORS; i++) {
-	if (touched(i)) {
-	  if (!previous(i)) {
-	    /* Changed from not-touched to touch, record the time */
-	    touchTimes[i] = millis();
-	  }
+      /* Update the touch times */
+      unsigned long now = millis();
 
-	} else {
-	  if (previous(i)) {
-	    /* Changed from touched to not-touch, record the total touched time */
-	    touchTimes[i] = millis() - touchTimes[i];
-	  }
-	}
+      for  (int i = 0; i < MAX_SENSORS; i++) {
+        if (touched(i)) {
+          if (!previous(i)) {
+            /* Changed from not-touched to touch, record the time */
+            touchTimes[i] = now;
+          }
+
+        } else {
+          if (previous(i)) {
+            /* Changed from touched to not-touch, record the total touched time */
+            touchTimes[i] = now - touchTimes[i];
+          }
+        }
       }
     }
 
@@ -331,6 +341,17 @@ boolean MPR121::readTouchInputs() {
     return false;
   }
 }
+
+uint16_t MPR121::getBaseline(byte sensor) {
+  // TODO: Add calls to fetch baseline sensor values
+  return 0;
+}
+
+uint16_t MPR121::getFiltered(byte sensor) {
+  // TODO: Add calls to fetch filtered sensor values
+  return 0;
+}
+
 
 void MPR121::checkInterrupt(void) {
   if (!digitalRead(irqpin)) { // IRQ is triggered on a down pulse
