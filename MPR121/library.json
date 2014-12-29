@@ -1,0 +1,23 @@
+{
+    "name": "MPR121",
+    "keywords": "mpr121, capacitive touch, capacitive, touch",
+    "description": "Library for interacting with MPR121 capacitive touch sensors and tracking touch states",
+    "authors":
+    {
+        "name": "Adam Phelps",
+        "email": "amp@cs.stanford.edu"
+    },
+    "repository":
+    {
+        "type": "git",
+        "url": "https://github.com/AMPWorks/ArduinoLibs.git"
+    },
+    "dependencies":
+    {
+        "name": "Debug",
+        "frameworks": "arduino"
+    },
+    "include": "MPR121",
+    "frameworks": "arduino",
+    "platforms": "atmelavr"
+}
