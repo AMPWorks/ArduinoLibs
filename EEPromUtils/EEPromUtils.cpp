@@ -1,3 +1,7 @@
+/*
+ * Written by Adam Phelps, amp@cs.stanford.edu, 2014
+ */
+
 #include <Arduino.h>
 #include "EEPROM.h"
 
@@ -172,13 +176,13 @@ int EEPROM_shift(int start_address, int distance) {
     for (int current = E2END - distance; current >= start_address; current--) {
       int write_address = current + distance;
       byte val = EEPROM.read(current);
-      EEPROM.write(write_address, val);
+      EEPROM_check_write(write_address, val);
     }
   } else if (distance < 0) {
     for (int current = start_address; current <= E2END; current++) {
       int write_address = current + distance;
       byte val = EEPROM.read(current);
-      EEPROM.write(write_address, val);
+      EEPROM_check_write(write_address, val);
     }
   }
 }
