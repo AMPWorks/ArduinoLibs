@@ -2,6 +2,11 @@
     "name": "EEPromUtils",
     "keywords": "eeprom, crc",
     "description": "Safer library for EEPROM access",
+    "authors":
+    {
+        "name": "Adam Phelps",
+        "email": "amp@cs.stanford.edu",
+    },
     "repository":
     {
         "type": "git",
