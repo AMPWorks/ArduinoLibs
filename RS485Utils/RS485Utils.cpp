@@ -27,10 +27,7 @@
 SoftwareSerial *serial;
 
 RS485Socket::RS485Socket() {
-  recvPin = 0;
-  xmitPin = 0;
   enablePin = 0;
-  initialized = false;
   serial = NULL;
   channel = NULL;
 }
@@ -38,32 +35,29 @@ RS485Socket::RS485Socket() {
 RS485Socket::RS485Socket(byte _recvPin, byte _xmitPin, byte _enablePin, 
 			 uint16_t _address) 
 {
-  initialized = false;
+  serial = NULL;
   init(_recvPin, _xmitPin, _enablePin, _address, RS485_RECV_BUFFER, false);
 }
 
 RS485Socket::RS485Socket(byte _recvPin, byte _xmitPin, byte _enablePin, 
 			 uint16_t _address, boolean _debug) 
 {
-  initialized = false;
+  serial = NULL;
   init(_recvPin, _xmitPin, _enablePin, _address, RS485_RECV_BUFFER, _debug);
 }
 
 void RS485Socket::init(byte _recvPin, byte _xmitPin, byte _enablePin,
 		       uint16_t _address, byte _recvsize, boolean _debug) {
-  if (initialized) {
+  if (serial != NULL) {
     DEBUG_ERR("RS485Socket::init already initialized");
     DEBUG_ERR_STATE(DEBUG_ERR_REINIT);
     // XXX - Could re-init the config?
   } else {
-    recvPin = _recvPin;
-    xmitPin = _xmitPin;
     enablePin = _enablePin;
     sourceAddress = _address;
-    debug = _debug;
     recvLimit = _recvsize;
 
-    serial = new SoftwareSerial(recvPin, xmitPin);
+    serial = new SoftwareSerial(_recvPin, _xmitPin);
 #if DEBUG_LEVEL == DEBUG_HIGH
     if (debug) {
       channel = new RS485(serialDebugRead, serialAvailable, serialDebugWrite,
@@ -77,13 +71,11 @@ void RS485Socket::init(byte _recvPin, byte _xmitPin, byte _enablePin,
 
     currentMsgID = 0;
   }
-
-  initialized = true;
 }
 
 void RS485Socket::setup() 
 {
-  if (!initialized) {
+  if (serial == NULL) {
     DEBUG_ERR("RS485Socket::setup called before initialized");
     DEBUG_ERR_STATE(DEBUG_ERR_UNINIT);
   }
@@ -172,12 +164,16 @@ void RS485Socket::sendMsgTo(uint16_t address,
 const byte *RS485Socket::getMsg(uint16_t address, unsigned int *retlen) 
 {
   if (channel->update()) {
+
+#if DEBUG_LELEL ==DEBUG_HIGH
     if (debug) {
       DEBUG_VALUE(DEBUG_HIGH, "getMsg:", getLength());
     }
+#endif
 
     const rs485_socket_msg_t *msg = (rs485_socket_msg_t *)channel->getData();
 
+#if DEBUG_LELEL ==DEBUG_HIGH
     if (debug &&
         (getLength() < sizeof (rs485_socket_hdr_t))) {
       DEBUG_ERR("ERROR-length < header");
@@ -188,7 +184,6 @@ const byte *RS485Socket::getMsg(uint16_t address, unsigned int *retlen)
       DEBUG_ERR("ERROR-length < header + data");
     }
 
-#if DEBUG_LELEL ==DEBUG_HIGH
     if (debug) {
       DEBUG_PRINT(DEBUG_HIGH, " RECV: ");
       printSocketMsg(msg);

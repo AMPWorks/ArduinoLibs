@@ -73,13 +73,11 @@ class RS485Socket
 
 
   byte recvLimit;
-  boolean initialized;
   uint16_t sourceAddress;
 
  private:
-  byte recvPin, xmitPin, enablePin;
+  byte enablePin;
   byte currentMsgID;
-  boolean debug;
 
   RS485 *channel;
 
