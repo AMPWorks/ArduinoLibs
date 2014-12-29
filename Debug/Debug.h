@@ -104,7 +104,10 @@
 #define DEBUG_ERR_INVALID 0x12
 #define DEBUG_ERR_REINIT 0x12
 
-/* Flash an error code */
+/*
+ * Enter a loop which will continually flash an error code on
+ * an Arduino's build in LED (typically pin 13).
+ */
 void debug_err_state(int code);
 
 /* Print memory pointers and free space */
