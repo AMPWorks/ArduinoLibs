@@ -27,7 +27,7 @@ Where the integer value is the level of debugging to enable.  This can also
 be set on a per-file basis if something along these lines is included in the
 source file:
 
-```
+```c
 #ifdef DEBUG_LEVEL_FILENAME
   #define DEBUG_LEVEL DEBUG_LEVEL_FILENAME
 #endif
