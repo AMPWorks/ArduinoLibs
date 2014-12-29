@@ -1,7 +1,9 @@
 /*
+ * Written by Adam Phelps, amp@cs.stanford.edu, 2014
+ *
  * In order to enable this code in a sketch, place the following:
  *   #define DEBUG_LEVEL <level>
- * before including this header.
+ * before including this header in a file.
  *
  * Enabling debugging will increase PROGMEM usage as all strings are stored
  * in progmem.

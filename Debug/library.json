@@ -1,0 +1,13 @@
+{
+  "name": "Debug",
+  "keywords": "debug, debugging",
+  "description": "Macro-based debugging print statements",
+  "repository":
+  {
+    "type": "git",
+    "url": "https://github.com/AMPWorks/ArduinoLibs"
+  },
+  "include": "Debug",
+  "frameworks": "arduino",
+  "platforms": "atmelavr"
+}

@@ -1,3 +1,7 @@
+/*
+ * Written by Adam Phelps, amp@cs.stanford.edu, 2014
+ */
+
 #include <Arduino.h>
 
 #include "Debug.h"
