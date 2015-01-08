@@ -2,13 +2,12 @@
 #ifndef PIXELUTIL_H
 #define PIXELUTIL_H
 
-#include "SPI.h"
-#include "Adafruit_WS2801.h"
+#include "FastLED.h"
 
-class RGB {
+class PRGB {
  public:
-  RGB();
-  RGB(byte r, byte g, byte b);
+  PRGB();
+  PRGB(byte r, byte g, byte b);
 
   void setColor(byte r, byte g, byte b);
   void setColor(uint32_t c);
@@ -32,14 +31,14 @@ class PixelUtil
   // WARNING: PixulUtil initialization *must* be after the Serial.init()
   PixelUtil();
   PixelUtil(uint16_t numPixels, uint8_t dataPin, uint8_t clockPin,
-            uint8_t order=WS2801_RGB);
+            uint8_t order=RGB);
   void init(uint16_t numPixels, uint8_t dataPin, uint8_t clockPin,
-	    uint8_t order=WS2801_RGB);
+	    uint8_t order=RGB);
   
   uint16_t numPixels();
   void setPixelRGB(uint16_t led, byte r, byte g, byte b);
   void setPixelRGB(uint16_t led, uint32_t color);
-  void setPixelRGB(RGB *rgb);
+  void setPixelRGB(PRGB *rgb);
   void setAllRGB(byte r, byte g, byte b);
 
   uint32_t getColor(uint16_t led);
@@ -54,7 +53,13 @@ class PixelUtil
   void patternBlue(int periodms);
 
   private:
-  Adafruit_WS2801 *pixels;
+#ifdef BIG_PIXELS
+  uint16_t num_pixels;
+#else
+  uint8_t num_pixels;
+#endif
+
+  CRGB *leds;
   boolean initialized;
 };
 

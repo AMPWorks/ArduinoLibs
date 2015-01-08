@@ -3,8 +3,7 @@
  */
 
 #include <Arduino.h>
-#include "SPI.h"
-#include "Adafruit_WS2801.h"
+#include "FastLED.h"
 
 #define DEBUG_LEVEL DEBUG_ERROR_ONLY //DEBUG_HIGH
 #include "Debug.h"
@@ -25,17 +24,27 @@ PixelUtil::PixelUtil(uint16_t numPixels, uint8_t dataPin, uint8_t clockPin,
   init(numPixels, dataPin, clockPin, order);
 }
 
-void PixelUtil::init(uint16_t numPixels, uint8_t dataPin, uint8_t clockPin,
-                     uint8_t order)
+void PixelUtil::init(uint16_t _numPixels, const uint8_t dataPin, const uint8_t clockPin,
+                     const uint8_t order)
 {
   if (initialized) {
     DEBUG_ERR("PixelUtil::init already initialized");
     DEBUG_ERR_STATE(DEBUG_ERR_REINIT);
-    // XXX - Could re-init the pixels?
   } else {
-    pixels = new Adafruit_WS2801(numPixels, dataPin, clockPin, order);
-    pixels->begin();
-    pixels->show();
+    num_pixels = _numPixels;
+    leds = new CRGB[num_pixels];
+
+    if ((dataPin == 12) && (clockPin == 8)) {
+      /*
+       * Since the FastLED library uses templates each pin combo needs to be
+       * specified here.
+       */
+      FastLED.addLeds<WS2801, 12, 8, RGB>(leds, num_pixels);
+    } else {
+      DEBUG_ERR("Invalid Pixel pin configuration");
+      DEBUG_ERR_STATE(DEBUG_ERR_BADPINS);
+    }
+    FastLED.show(); // XXX: Should this be zero'd first?  or skipped?
   }
   initialized = true;
   DEBUG_PRINTLN(DEBUG_LOW, "PixelUtil::init");
@@ -43,40 +52,40 @@ void PixelUtil::init(uint16_t numPixels, uint8_t dataPin, uint8_t clockPin,
 
 uint16_t PixelUtil::numPixels() 
 {
-  return pixels->numPixels();
+  return num_pixels;
 }
 
 void PixelUtil::setPixelRGB(uint16_t led, byte r, byte g, byte b)
 {
-  pixels->setPixelColor(led, pixel_color(r, g, b));
+  leds[led] = CRGB(r, g, b);
 }
 
 void PixelUtil::setPixelRGB(uint16_t led, uint32_t color)
 {
-  pixels->setPixelColor(led, color);
+  leds[led] = color;
 }
 
-void PixelUtil::setPixelRGB(RGB *rgb) {
+void PixelUtil::setPixelRGB(PRGB *rgb) {
   if (rgb->pixel < numPixels()) {
-    pixels->setPixelColor(rgb->pixel, rgb->color());
+    leds[rgb->pixel] = rgb->color();
   }
 }
 
 void PixelUtil::setAllRGB(byte r, byte g, byte b)
 {
-  for (int led = 0; led < numPixels(); led++) {
-    pixels->setPixelColor(led, pixel_color(r, g, b));
+  for (uint16_t led = 0; led < numPixels(); led++) {
+    leds[led] = CRGB(r, g, b);
   }
 }
 
 
 uint32_t PixelUtil::getColor(uint16_t led) {
-  return pixels->getPixelColor(led);
+  return pixel_color(leds[led].r, leds[led].g, leds[led].b);
 }
 
 void PixelUtil::update() 
 {
-  pixels->show();
+  FastLED.show();
 }
 
 /* Loop through the given pattern */
@@ -153,25 +162,25 @@ void PixelUtil::patternBlue(int periodms) {
 /*******************************************************************************
  * RGB class
  ******************************************************************************/
-RGB::RGB() {
+PRGB::PRGB() {
   setColor(0, 0, 0);
 }
 
-RGB::RGB(byte r, byte g, byte b) {
+PRGB::PRGB(byte r, byte g, byte b) {
   setColor(r, g, b);
 }
 
-void RGB::setColor(byte r, byte g, byte b) {
+void PRGB::setColor(byte r, byte g, byte b) {
   red = r;
   green = g;
   blue = b;
 }
 
-void RGB::setColor(uint32_t color) {
+void PRGB::setColor(uint32_t color) {
   setColor(pixel_red(color), pixel_green(color), pixel_blue(color));
 }
 
-void RGB::incrColor(int r, int g, int b) {
+void PRGB::incrColor(int r, int g, int b) {
   if ((r > 0) && (255 - r < red )) red = 255;
   else if ((r < 0) && (0 - r > red)) red = 0;
   else red += r;
@@ -185,7 +194,7 @@ void RGB::incrColor(int r, int g, int b) {
   else blue += b;
 }
 
-uint32_t RGB::color() {
+uint32_t PRGB::color() {
   return pixel_color(red, green, blue);
 }
 
