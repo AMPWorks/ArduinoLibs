@@ -73,6 +73,10 @@ void RS485Socket::init(byte _recvPin, byte _xmitPin, byte _enablePin,
   }
 }
 
+boolean RS485Socket::initialized() {
+  return (serial != NULL);
+}
+
 void RS485Socket::setup() 
 {
   if (serial == NULL) {

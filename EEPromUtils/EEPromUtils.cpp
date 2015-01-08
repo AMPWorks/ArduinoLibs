@@ -82,7 +82,10 @@ boolean EEPROM_check_write(int location, uint8_t value) {
  * Returns the address of the byte after the last one written
  */
 int EEPROM_safe_write(int location, uint8_t *data, int datalen) {
+#ifdef DEBUG_LEVEL
   int start = location;
+#endif
+
   if (location + datalen + EEPROM_WRAPPER_SIZE >= EEPROM_MAX_ADDRESS) {
     DEBUG_ERR("EEPROM_safe_write: data exceeds max address");
     return -1;
@@ -163,7 +166,7 @@ int EEPROM_safe_read(int location, uint8_t *buff, int bufflen)
 /*
  *  Shift all data in EEPROM starting at 'start_address', 'distance' bytes
  */
-int EEPROM_shift(int start_address, int distance) {
+void EEPROM_shift(int start_address, int distance) {
   // E2END is the last EEPROM address, for instance 1023 on the ATMega328 */
 
   DEBUG_VALUE(DEBUG_LOW, "EEPROM_shift: start=", start_address);

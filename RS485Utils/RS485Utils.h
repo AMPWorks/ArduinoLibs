@@ -71,6 +71,7 @@ class RS485Socket
   const byte *getMsg(uint16_t address, unsigned int *retlen);
   byte getLength();
 
+  boolean initialized();
 
   byte recvLimit;
   uint16_t sourceAddress;

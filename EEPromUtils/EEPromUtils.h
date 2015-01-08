@@ -34,6 +34,6 @@ int EEPROM_safe_read(int location, uint8_t *buff, int bufflen);
 /*
  * Shift data in EEPROM forward or backware the indicated distance
  */
-int EEPROM_shift(int start_address, int distance);
+void EEPROM_shift(int start_address, int distance);
 
 #endif

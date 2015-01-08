@@ -102,7 +102,8 @@
 #define DEBUG_ERR_MALLOC  0x10
 #define DEBUG_ERR_UNINIT  0x11
 #define DEBUG_ERR_INVALID 0x12
-#define DEBUG_ERR_REINIT 0x12
+#define DEBUG_ERR_REINIT  0x13
+#define DEBUG_ERR_BADPINS 0x14
 
 /*
  * Enter a loop which will continually flash an error code on
