@@ -37,14 +37,14 @@ void debug_print_memory() {
 
   v = (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval);
 
-  DEBUG_PRINT(0, "BRKVAL: ");
-  DEBUG_PRINT(0, (int)__brkval);
-  DEBUG_PRINT(0, " HEAP_START: ");
-  DEBUG_PRINT(0, __heap_start);
-  DEBUG_PRINT(0, " &HEAP_START: ");
-  DEBUG_PRINT(0, (int)&__heap_start);
-  DEBUG_PRINT(0, " &V: ");
-  DEBUG_PRINT(0, (int)&v);
-  DEBUG_PRINT(0, " FREE: ");
-  DEBUG_PRINTLN(0, v);
+  DEBUG1_PRINT("BRKVAL: ");
+  DEBUG1_PRINT((int)__brkval);
+  DEBUG1_PRINT(" HEAP_START: ");
+  DEBUG1_PRINT(__heap_start);
+  DEBUG1_PRINT(" &HEAP_START: ");
+  DEBUG1_PRINT((int)&__heap_start);
+  DEBUG1_PRINT(" &V: ");
+  DEBUG1_PRINT((int)&v);
+  DEBUG1_PRINT(" FREE: ");
+  DEBUG1_PRINTLN(v);
 }

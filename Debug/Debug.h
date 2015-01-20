@@ -10,26 +10,162 @@
  */
 
 // Print levels
-#define DEBUG_ERROR 0
-#define DEBUG_LOW   1
-#define DEBUG_MID   2
-#define DEBUG_HIGH  3
-#define DEBUG_TRACE 4
+#define DEBUG_NONE  0
+#define DEBUG_ERROR 1
+#define DEBUG_LOW   2
+#define DEBUG_MID   3
+#define DEBUG_HIGH  4
+#define DEBUG_TRACE 5
 #define DEBUG_ERROR_ONLY -1 // Will only compile error commands
 
-#ifdef DEBUG /* Compatibility with earlier Debug.h syntax */
-  #define DEBUG_LEVEL DEBUG_HIGH
+#ifdef DEBUG_LEVEL
+  #if DEBUG_LEVEL == DEBUG_ERROR_ONLY
+    #define DEBUG_ERR(x)   Serial.println(F(x));
+    #define DEBUG_ERR_STATE(x) debug_err_state(x);
+  #else
+    #define DEBUG
+  #endif
+#else
+  #define DEBUG_LEVEL DEBUG_NONE
 #endif
 
 #ifdef DEBUG_LEVEL
-#if DEBUG_LEVEL == DEBUG_ERROR_ONLY
-  #define DEBUG_ERR(x)   Serial.println(F(x));
-  #define DEBUG_ERR_STATE(x) debug_err_state(x);
-#else
-  #define DEBUG
-#endif
-#endif
+#if DEBUG_LEVEL >= 1
+  extern char close_line;
 
+  #define DEBUG1_PRINT(x) { close_line = true; Serial.print(F(x)); }
+  #define DEBUG1_PRINTLN(x) { close_line = false; Serial.println(F(x)); }
+  #define DEBUG1_HEX(x) { close_line = true; Serial.print(x, HEX); }
+  #define DEBUG1_HEXLN(x) { close_line = false; Serial.println(x, HEX); }
+  #define DEBUG1_VALUE(x, y) { \
+    close_line = true; Serial.print(F(x)); Serial.print(y); }
+  #define DEBUG1_VALUELN(x, y) { \
+    close_line = false; Serial.print(F(x)); Serial.println (y); }
+  #define DEBUG1_HEXVAL(x, y) { \
+    close_line = true; Serial.print(F(x)); Serial.print(y, HEX); }
+  #define DEBUG1_HEXVALLN(x, y) { \
+    close_line = false; Serial.print(F(x)); Serial.println(y); }
+  #define DEBUG_ENDLN() { close_line = false; Serial.println();}
+
+  #define DEBUG_ERR(x) DEBUG1_PRINTLN(x);
+  #define DEBUG_ERR_STATE(x) debug_err_state(x);
+  #define DEBUG1_COMMAND(x) { x; }
+
+#else // #if DEBUG_LEVEL >= 1
+  #define DEBUG1_PRINT(x)
+  #define DEBUG1_PRINTLN(x)
+  #define DEBUG1_HEX(x)
+  #define DEBUG1_HEXLN(x)
+  #define DEBUG1_VALUE(x, y)
+  #define DEBUG1_VALUELN(x, y)
+  #define DEBUG1_HEXVAL(x, y)
+  #define DEBUG1_HEXVALLN(x, y)
+  #define DEBUG_ENDLN()
+\
+  #if DEBUG_LEVEL == DEBUG_ERROR_ONLY
+    #define DEBUG_ERR(x)   Serial.println(F(x));
+    #define DEBUG_ERR_STATE(x) debug_err_state(x);
+  #else
+    #define DEBUG_ERR(x)
+    #define DEBUG_ERR_STATE(x)
+  #endif
+  #define DEBUG1_COMMAND(x)
+#endif // #if DEBUG_LEVEL >= 1
+
+#if DEBUG_LEVEL >= 2
+  #define DEBUG2_PRINT(x)          DEBUG1_PRINT(x)
+  #define DEBUG2_PRINTLN(x)        DEBUG1_PRINTLN(x)
+  #define DEBUG2_HEX(x)            DEBUG1_HEX(x)
+  #define DEBUG2_HEXLN(x)          DEBUG1_HEXLN(x)
+  #define DEBUG2_VALUE(x, y)    DEBUG1_VALUE(x, y)
+  #define DEBUG2_VALUELN(x, y)  DEBUG1_VALUELN(x, y)
+  #define DEBUG2_HEXVAL(x, y)   DEBUG1_HEXVAL(x, y)
+  #define DEBUG2_HEXVALLN(x, y) DEBUG1_HEXVALLN(x, y)
+  #define DEBUG2_COMMAND(x) { x; }
+#else // #if DEBUG_LEVEL >= 2
+  #define DEBUG2_PRINT(x)
+  #define DEBUG2_PRINTLN(x)
+  #define DEBUG2_HEX(x)
+  #define DEBUG2_HEXLN(x)
+  #define DEBUG2_VALUE(x, y)
+  #define DEBUG2_VALUELN(x, y)
+  #define DEBUG2_HEXVAL(x, y)
+  #define DEBUG2_HEXVALLN(x, y)
+  #define DEBUG2_COMMAND(x)
+#endif // #if DEBUG_LEVEL >= 2
+
+#if DEBUG_LEVEL >= 3
+  #define DEBUG3_PRINT(x)          DEBUG1_PRINT(x)
+  #define DEBUG3_PRINTLN(x)        DEBUG1_PRINTLN(x)
+  #define DEBUG3_HEX(x)            DEBUG1_HEX(x)
+  #define DEBUG3_HEXLN(x)          DEBUG1_HEXLN(x)
+  #define DEBUG3_VALUE(x, y)    DEBUG1_VALUE(x, y)
+  #define DEBUG3_VALUELN(x, y)  DEBUG1_VALUELN(x, y)
+  #define DEBUG3_HEXVAL(x, y)   DEBUG1_HEXVAL(x, y)
+  #define DEBUG3_HEXVALLN(x, y) DEBUG1_HEXVALLN(x, y)
+  #define DEBUG3_COMMAND(x) { x; }
+#else // #if DEBUG_LEVEL >= 3
+  #define DEBUG3_PRINT(x)
+  #define DEBUG3_PRINTLN(x)
+  #define DEBUG3_HEX(x)
+  #define DEBUG3_HEXLN(x)
+  #define DEBUG3_VALUE(x, y)
+  #define DEBUG3_VALUELN(x, y)
+  #define DEBUG3_HEXVAL(x, y)
+  #define DEBUG3_HEXVALLN(x, y)
+  #define DEBUG3_COMMAND(x)
+#endif // #if DEBUG_LEVEL >= 3
+
+#if DEBUG_LEVEL >= 4
+  #define DEBUG4_PRINT(x)          DEBUG1_PRINT(x)
+  #define DEBUG4_PRINTLN(x)        DEBUG1_PRINTLN(x)
+  #define DEBUG4_HEX(x)            DEBUG1_HEX(x)
+  #define DEBUG4_HEXLN(x)          DEBUG1_HEXLN(x)
+  #define DEBUG4_VALUE(x, y)    DEBUG1_VALUE(x, y)
+  #define DEBUG4_VALUELN(x, y)  DEBUG1_VALUELN(x, y)
+  #define DEBUG4_HEXVAL(x, y)   DEBUG1_HEXVAL(x, y)
+  #define DEBUG4_HEXVALLN(x, y) DEBUG1_HEXVALLN(x, y)
+  #define DEBUG4_COMMAND(x) { x; }
+#else // #if DEBUG_LEVEL >= 4
+  #define DEBUG4_PRINT(x)
+  #define DEBUG4_PRINTLN(x)
+  #define DEBUG4_HEX(x)
+  #define DEBUG4_HEXLN(x)
+  #define DEBUG4_VALUE(x, y)
+  #define DEBUG4_VALUELN(x, y)
+  #define DEBUG4_HEXVAL(x, y)
+  #define DEBUG4_HEXVALLN(x, y)
+  #define DEBUG4_COMMAND(x)
+#endif // #if DEBUG_LEVEL >= 4
+
+#if DEBUG_LEVEL >= 5
+  #define DEBUG5_PRINT(x)          DEBUG1_PRINT(x)
+  #define DEBUG5_PRINTLN(x)        DEBUG1_PRINTLN(x)
+  #define DEBUG5_HEX(x)            DEBUG1_HEX(x)
+  #define DEBUG5_HEXLN(x)          DEBUG1_HEXLN(x)
+  #define DEBUG5_VALUE(x, y)    DEBUG1_VALUE(x, y)
+  #define DEBUG5_VALUELN(x, y)  DEBUG1_VALUELN(x, y)
+  #define DEBUG5_HEXVAL(x, y)   DEBUG1_HEXVAL(x, y)
+  #define DEBUG5_HEXVALLN(x, y) DEBUG1_HEXVALLN(x, y)
+  #define DEBUG5_COMMAND(x) { x; }
+#else // #if DEBUG_LEVEL >= 5
+  #define DEBUG5_PRINT(x)
+  #define DEBUG5_PRINTLN(x)
+  #define DEBUG5_HEX(x)
+  #define DEBUG5_HEXLN(x)
+  #define DEBUG5_VALUE(x, y)
+  #define DEBUG5_VALUELN(x, y)
+  #define DEBUG5_HEXVAL(x, y)
+  #define DEBUG5_HEXVALLN(x, y)
+  #define DEBUG5_COMMAND(x)
+#endif // #if DEBUG_LEVEL >= 5
+
+#endif // #ifdef DEBUG_LEVEL
+
+
+  /*
+   * TODO: This section is deprecated, delete when possible
+   */
 #ifdef DEBUG
   extern char close_line;
 
