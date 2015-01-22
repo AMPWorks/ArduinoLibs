@@ -202,9 +202,13 @@
     Serial.println();                                                   \
   }
 
-  #define DEBUG_ERR(x) DEBUG_PRINTLN(DEBUG_ERROR, x);
+  #ifndef DEBUG_ERR
+    #define DEBUG_ERR(x) DEBUG_PRINTLN(DEBUG_ERROR, x);
+  #endif
 
-  #define DEBUG_ERR_STATE(x) debug_err_state(x);
+  #ifndef DEBUG_ERR_STATE
+    #define DEBUG_ERR_STATE(x) debug_err_state(x);
+  #endif
 
   #define DEBUG_COMMAND(v, x) if (v <= DEBUG_LEVEL) {     \
     x; \
