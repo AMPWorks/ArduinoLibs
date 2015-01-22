@@ -16,9 +16,6 @@
  *   3.3V -> 3.3V
  */
 
-//#define DEBUG_LEVEL DEBUG_HIGH
-#include <Debug.h>
-
 #include <Arduino.h>
 #include "MPR121.h"
 #include <Wire.h>
@@ -42,7 +39,7 @@ void setup() {
                  I2C_ADDRESS,   // START_ADDRESS = 0x5A
                  true,          // use touch times
                  false          // use auto config and reconfig
-		 );
+                 );
 
   pinMode(DEBUG_LED, OUTPUT);
 
@@ -149,51 +146,55 @@ void handleSerial(char *command) {
 
   token = 4;
   switch (tokens[0][0]) {
-  case 't': {
-    int sensor = atoi(tokens[1]);
-    int trigger = atoi(tokens[2]);
-    int release = atoi(tokens[3]);
-    Serial.print(F("Setting threshold sensor="));
-    Serial.print(sensor);
-    Serial.print(F(" trig="));
-    Serial.print(trigger);
-    Serial.print(F(" rel="));
-    Serial.println(release);
-    touch.setThreshold(sensor, trigger, release);
-    break;
-  }
-  case 'd': {
-    int trigger = atoi(tokens[1]);
-    int release = atoi(tokens[2]);
-    touch.setDebounce(trigger, release);
-    break;
-  }
+    case 't': {
+      int sensor = atoi(tokens[1]);
+      int trigger = atoi(tokens[2]);
+      int release = atoi(tokens[3]);
+      Serial.print(F("Setting threshold sensor="));
+      Serial.print(sensor);
+      Serial.print(F(" trig="));
+      Serial.print(trigger);
+      Serial.print(F(" rel="));
+      Serial.println(release);
+      touch.setThreshold(sensor, trigger, release);
+      break;
+    }
+    case 'd': {
+      int trigger = atoi(tokens[1]);
+      int release = atoi(tokens[2]);
+      Serial.print(F("Setting debounce trig="));
+      Serial.print(trigger);
+      Serial.print(F(" rel="));
+      Serial.println(release);
+      touch.setDebounce(trigger, release);
+      break;
+    }
 
-  case 'r': {
-    uint8_t reg = strtol(tokens[1], NULL, 16);
-    byte value;
-    if (touch.read_register(reg, &value)) {
-      Serial.print(F("Read register:0x"));
+    case 'r': {
+      uint8_t reg = strtol(tokens[1], NULL, 16);
+      byte value;
+      if (touch.read_register(reg, &value)) {
+        Serial.print(F("Read register:0x"));
+        Serial.print(reg, HEX);
+        Serial.print(F(" value:0x"));
+        Serial.println(value, HEX);
+      } else {
+        Serial.print(F("Unable to read register:0x"));
+        Serial.println(reg, HEX);
+      }
+      break;
+    }
+    case 's': {
+      uint8_t reg = strtol(tokens[1], NULL, 0);
+      uint8_t value = strtol(tokens[2], NULL, 0);
+      touch.set_register(ELE_CFG, 0x00);
+      touch.set_register(reg, value);
+      touch.set_register(ELE_CFG, 0x0C);
+      Serial.print(F("Set register:0x"));
       Serial.print(reg, HEX);
       Serial.print(F(" value:0x"));
       Serial.println(value, HEX);
-    } else {
-      Serial.print(F("Unable to read register:0x"));
-      Serial.println(reg, HEX);
+      break;
     }
-    break;
-  }
-  case 's': {
-    uint8_t reg = strtol(tokens[1], NULL, 0);
-    uint8_t value = strtol(tokens[2], NULL, 0);
-    touch.set_register(ELE_CFG, 0x00);
-    touch.set_register(reg, value);
-    touch.set_register(ELE_CFG, 0x0C);
-    Serial.print(F("Set register:0x"));
-    Serial.print(reg, HEX);
-    Serial.print(F(" value:0x"));
-    Serial.println(value, HEX);
-    break;
-  }
   }
 }
