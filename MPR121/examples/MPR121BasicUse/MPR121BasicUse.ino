@@ -21,7 +21,7 @@
 #include <Wire.h>
 
 #define I2C_ADDRESS 0x5A // 0x5A - 0x5D
-#define IRQ_PIN 3
+#define IRQ_PIN 2
 
 #define DEBUG_LED 13
 
@@ -30,6 +30,8 @@ MPR121 touch;
 void setup() {
   Serial.begin(9600);
   Serial.println(F("MPR121 Basic Use initializing"));
+  Serial.print(F(" * IRQ Pin:"));
+  Serial.println(IRQ_PIN);
 
   Wire.begin();
 

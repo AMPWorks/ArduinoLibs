@@ -289,7 +289,7 @@ boolean MPR121::readTouchInputs() {
     triggered = false;
 
     // read the touch state from the MPR121
-    Wire.requestFrom(address, (byte)2);
+    Wire.requestFrom(address, (uint8_t)2);
 
     byte LSB = Wire.read();
     byte MSB = Wire.read();
