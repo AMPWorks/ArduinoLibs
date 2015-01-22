@@ -93,11 +93,11 @@ Sensor::read(void)
     }
   }
 
-  DEBUG_PRINT(2, "read- pin ");
-  DEBUG_PRINT(2, pin);
-  DEBUG_PRINT(2, ": value=");
-  DEBUG_PRINT(2, curr_state);
-  DEBUG_PRINT(2, "\n");
+  DEBUG3_PRINT("read- pin ");
+  DEBUG3_PRINT(pin);
+  DEBUG3_PRINT(": value=");
+  DEBUG3_PRINT(curr_state);
+  DEBUG3_PRINT("\n");
 
   if (action) action(pin, curr_state, action_arg);
 
@@ -125,22 +125,22 @@ Sensor::debouncedRead(void)
   
   if (currentValue != prev_state) {
     debounce_time = millis();
-    DEBUG_PRINT(2, "debounce- pin ");
-    DEBUG_PRINT(2, pin);
-    DEBUG_PRINT(2, ": buttons_debounce_time=");
-    DEBUG_PRINT(2, debounce_time);
-    DEBUG_PRINT(2, "\n");
+    DEBUG3_PRINT("debounce- pin ");
+    DEBUG3_PRINT(pin);
+    DEBUG3_PRINT(": buttons_debounce_time=");
+    DEBUG3_PRINT(debounce_time);
+    DEBUG3_PRINT("\n");
   }
   prev_state = currentValue;
   
   if (currentValue != curr_state) {
     if ((millis() - debounce_time) > debounce_delay) {
       curr_state = currentValue;
-      DEBUG_PRINT(2, "debounce- pin ");
-      DEBUG_PRINT(2, pin);
-      DEBUG_PRINT(2, ": value=");
-      DEBUG_PRINT(2, curr_state);
-      DEBUG_PRINT(2, "\n");
+      DEBUG3_PRINT("debounce- pin ");
+      DEBUG3_PRINT(pin);
+      DEBUG3_PRINT(": value=");
+      DEBUG3_PRINT(curr_state);
+      DEBUG3_PRINT("\n");
     }
   }
 

@@ -107,16 +107,16 @@ int RS485Socket::serialRead()
 #if (DEBUG_LEVEL == DEBUG_HIGH)
 size_t RS485Socket::serialDebugWrite(const byte value) 
 {
-  DEBUG_HEX(DEBUG_HIGH, value);
-  DEBUG_PRINT(DEBUG_HIGH, " ");
+  DEBUG4_HEX(value);
+  DEBUG4_PRINT(" ");
   return serial->write(value);
 }
 
 int RS485Socket::serialDebugRead() 
 {
   int value = serial->read();
-  DEBUG_HEX(DEBUG_HIGH, value);
-  DEBUG_PRINT(DEBUG_HIGH, " ");
+  DEBUG4_HEX(value);
+  DEBUG4_PRINT(" ");
   return value;
 }
 #endif
@@ -149,10 +149,10 @@ void RS485Socket::sendMsgTo(uint16_t address,
 
 #if DEBUG_LELEL ==DEBUG_HIGH
   if (debug) {
-    DEBUG_VALUE(DEBUG_HIGH, "XMIT:", msg_len);
-    DEBUG_PRINT(DEBUG_HIGH, " ");
+    DEBUG4_VALUE("XMIT:", msg_len);
+    DEBUG4_PRINT(" ");
     printSocketMsg(msg);
-    DEBUG_PRINT(DEBUG_HIGH, " raw:");
+    DEBUG4_PRINT(" raw:");
   }
 #endif
 
@@ -171,7 +171,7 @@ const byte *RS485Socket::getMsg(uint16_t address, unsigned int *retlen)
 
 #if DEBUG_LELEL ==DEBUG_HIGH
     if (debug) {
-      DEBUG_VALUE(DEBUG_HIGH, "getMsg:", getLength());
+      DEBUG4_VALUE("getMsg:", getLength());
     }
 #endif
 
@@ -189,7 +189,7 @@ const byte *RS485Socket::getMsg(uint16_t address, unsigned int *retlen)
     }
 
     if (debug) {
-      DEBUG_PRINT(DEBUG_HIGH, " RECV: ");
+      DEBUG4_PRINT(" RECV: ");
       printSocketMsg(msg);
     }
 #endif
@@ -209,21 +209,21 @@ byte RS485Socket::getLength()
   return channel->getLength();
 }
 
-#if DEBUG_LEVEL == DEBUG_HIGH
+#if DEBUG_LEVEL >= DEBUG_HIGH
 void printSocketMsg(const rs485_socket_msg_t *msg) 
 {
-  DEBUG_HEXVAL(DEBUG_HIGH, "i:",  msg->hdr.ID);
-  DEBUG_HEXVAL(DEBUG_HIGH, " l:", msg->hdr.length);
-  DEBUG_HEXVAL(DEBUG_HIGH, " a:", msg->hdr.address);
-  DEBUG_HEXVAL(DEBUG_HIGH, " f:", msg->hdr.flags);
-  DEBUG_PRINT(DEBUG_HIGH, " data:");
+  DEBUG4_HEXVAL( "i:",  msg->hdr.ID);
+  DEBUG4_HEXVAL( " l:", msg->hdr.length);
+  DEBUG4_HEXVAL( " a:", msg->hdr.address);
+  DEBUG4_HEXVAL( " f:", msg->hdr.flags);
+  DEBUG4_PRINT(" data:");
 printBuffer(msg->data, msg->hdr.length);
 }
 
 void printBuffer(const byte *buff, int length) 
 {
   for (int b = 0; b < length; b++) {
-    DEBUG_HEXVAL(DEBUG_HIGH, " ", buff[b]);
+    DEBUG4_HEXVAL( " ", buff[b]);
   }
 }
 #endif

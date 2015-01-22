@@ -5,7 +5,7 @@
 #include <Arduino.h>
 #include "FastLED.h"
 
-#define DEBUG_LEVEL DEBUG_ERROR_ONLY //DEBUG_HIGH
+//#define DEBUG_LEVEL DEBUG_HIGH
 #include "Debug.h"
 
 #include "PixelUtil.h"
@@ -47,7 +47,7 @@ void PixelUtil::init(uint16_t _numPixels, const uint8_t dataPin, const uint8_t c
     FastLED.show(); // XXX: Should this be zero'd first?  or skipped?
   }
   initialized = true;
-  DEBUG_PRINTLN(DEBUG_LOW, "PixelUtil::init");
+  DEBUG2_PRINTLN("PixelUtil::init");
 }
 
 uint16_t PixelUtil::numPixels() 

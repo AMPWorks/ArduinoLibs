@@ -82,7 +82,7 @@ boolean EEPROM_check_write(int location, uint8_t value) {
  * Returns the address of the byte after the last one written
  */
 int EEPROM_safe_write(int location, uint8_t *data, int datalen) {
-#ifdef DEBUG_LEVEL
+#if DEBUG_LEVEL >= DEBUG_HIGH
   int start = location;
 #endif
 
@@ -104,11 +104,11 @@ int EEPROM_safe_write(int location, uint8_t *data, int datalen) {
   location += datalen;
   wrote_count += EEPROM_check_write(location++, crc);
 
-  DEBUG_VALUE(DEBUG_HIGH, "EEPROM_safe_write: addr=", start);
-  DEBUG_VALUE(DEBUG_HIGH, " data=", datalen);
-  DEBUG_VALUE(DEBUG_HIGH, " all=", location - start);
-  DEBUG_VALUE(DEBUG_HIGH, " ret=", location);
-  DEBUG_VALUELN(DEBUG_HIGH, " diffs=", wrote_count);
+  DEBUG4_VALUE("EEPROM_safe_write: addr=", start);
+  DEBUG4_VALUE(" data=", datalen);
+  DEBUG4_VALUE(" all=", location - start);
+  DEBUG4_VALUE(" ret=", location);
+  DEBUG4_VALUELN(" diffs=", wrote_count);
 
   return location;
 }
@@ -123,7 +123,7 @@ int EEPROM_safe_read(int location, uint8_t *buff, int bufflen)
 {
   uint8_t val;
 
-  DEBUG_VALUE(DEBUG_HIGH, "EEPROM_safe_read: addr=", location);
+  DEBUG4_VALUE("EEPROM_safe_read: addr=", location);
 
   if (location + EEPROM_WRAPPER_SIZE >= EEPROM_MAX_ADDRESS) {
     DEBUG_ERR("EEPROM_safe_read: location exceeds max address");
@@ -146,10 +146,10 @@ int EEPROM_safe_read(int location, uint8_t *buff, int bufflen)
     return -4;
   }
 
-  DEBUG_PRINT(DEBUG_HIGH, " data=");
+  DEBUG4_PRINT(" data=");
   for (uint8_t i = 0; i < datalen; i++) {
     buff[i] = EEPROM.read(location++);
-    DEBUG_HEXVAL(DEBUG_HIGH, " ", buff[i]);
+    DEBUG4_HEXVAL( " ", buff[i]);
   }
 
   crc_t crc = EEPROM.read(location++);
@@ -158,7 +158,7 @@ int EEPROM_safe_read(int location, uint8_t *buff, int bufflen)
     return -5;
   }
 
-  DEBUG_VALUELN(DEBUG_HIGH, " ret=", location);
+  DEBUG4_VALUELN(" ret=", location);
 
   return location;
 }
@@ -169,9 +169,9 @@ int EEPROM_safe_read(int location, uint8_t *buff, int bufflen)
 void EEPROM_shift(int start_address, int distance) {
   // E2END is the last EEPROM address, for instance 1023 on the ATMega328 */
 
-  DEBUG_VALUE(DEBUG_LOW, "EEPROM_shift: start=", start_address);
-  DEBUG_VALUE(DEBUG_LOW, " distance=", distance);
-  DEBUG_VALUE(DEBUG_LOW, " E2END=", E2END);
+  DEBUG2_VALUE("EEPROM_shift: start=", start_address);
+  DEBUG2_VALUE(" distance=", distance);
+  DEBUG2_VALUE(" E2END=", E2END);
 
   if (abs(distance) >= E2END) DEBUG_ERR_STATE(1);
 

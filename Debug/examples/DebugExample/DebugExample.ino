@@ -15,14 +15,14 @@ void setup() {
 
 void loop() {
 
-  DEBUG_PRINTLN(DEBUG_HIGH, "This is a high level print statement");
+  DEBUG4_PRINTLN("This is a high level print statement");
 
   int value1 = 10;
   int value2 = 20;
-  DEBUG_VALUELN(DEBUG_MID, "This is a value:", value1);
+  DEBUG3_VALUELN("This is a value:", value1);
 
-  DEBUG_VALUE(DEBUG_LOW, "This is two values on one line: ", value1);
-  DEBUG_VALUELN(DEBUG_LOW, ",", value2);
+  DEBUG2_VALUE("This is two values on one line: ", value1);
+  DEBUG2_VALUELN(",", value2);
 
   DEBUG_ERR("This is an error, the program will halt on the next statement");
   DEBUG_ERR_STATE(1);

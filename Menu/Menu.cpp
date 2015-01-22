@@ -71,11 +71,11 @@ Menu::next(void)
 {
   current = (current + 1) % numItems;
   display();
-  DEBUG_PRINT(1, "next now:0x");
+  DEBUG2_PRINT("next now:0x");
   DEBUG_PRINT_HEX(1, current);
-  DEBUG_PRINT(1, " max:");
-  DEBUG_PRINT(1, numItems);
-  DEBUG_PRINT(1, "\n");
+  DEBUG2_PRINT(" max:");
+  DEBUG2_PRINT(numItems);
+  DEBUG2_PRINT("\n");
 }
 
 void
@@ -84,11 +84,11 @@ Menu::prev(void)
   current--;
   if (current == (byte)(-1)) current = numItems - 1;
   display();
-  DEBUG_PRINT(1, "prev now:0x");
+  DEBUG2_PRINT("prev now:0x");
   DEBUG_PRINT_HEX(1, current);
-  DEBUG_PRINT(1, " max:");
-  DEBUG_PRINT(1, numItems);
-  DEBUG_PRINT(1, "\n");
+  DEBUG2_PRINT(" max:");
+  DEBUG2_PRINT(numItems);
+  DEBUG2_PRINT("\n");
 }
 
 void

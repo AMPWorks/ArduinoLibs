@@ -119,8 +119,8 @@ void MPR121::init(byte _irqpin, boolean _useInterrupt, byte _address,
   }
   initialized = true;
 
-  DEBUG_VALUE(DEBUG_MID, "MPR121: Initialized.  IRQ=", irqpin);
-  DEBUG_VALUELN(DEBUG_MID, " useInterrupt=", useInterrupt);
+  DEBUG3_VALUE("MPR121: Initialized.  IRQ=", irqpin);
+  DEBUG3_VALUELN(" useInterrupt=", useInterrupt);
 
   initialize(auto_enabled);
 }
@@ -214,9 +214,9 @@ void MPR121::setThreshold(byte sensor, byte trigger, byte release) {
   set_register(rel, release);
   set_register(ELE_CFG, 0x0C); // ??? Enable all electrodes
 
-  DEBUG_VALUE(DEBUG_MID, "Set threshold- Sensor:", sensor);
-  DEBUG_VALUE(DEBUG_MID, " trigger:", trigger);
-  DEBUG_VALUELN(DEBUG_MID, " release:", release);
+  DEBUG3_VALUE("Set threshold- Sensor:", sensor);
+  DEBUG3_VALUE(" trigger:", trigger);
+  DEBUG3_VALUELN(" release:", release);
 }
 
 void MPR121::setThresholds(byte trigger, byte release) {
@@ -237,8 +237,8 @@ void MPR121::setDebounce(byte trigger, byte release) {
   set_register(DEBOUNCE, value);
   set_register(ELE_CFG, 0x0C);
 
-  DEBUG_VALUE(DEBUG_MID, "Set debouce- trigger:", trigger);
-  DEBUG_VALUELN(DEBUG_MID, " release:", release);
+  DEBUG3_VALUE("Set debouce- trigger:", trigger);
+  DEBUG3_VALUELN(" release:", release);
 }
 
 /* Return the value of the sensor from the most recent check */
@@ -297,18 +297,18 @@ boolean MPR121::readTouchInputs() {
     // 16bits that make up the touch states
     touchStates = ((MSB << 8) | LSB);
 
-    DEBUG_COMMAND(DEBUG_TRACE,
+    DEBUG5_COMMAND(
                   // Check what electrodes were pressed
                   for  (int i = 0; i < MAX_SENSORS; i++) {
                     if (touched(i)){
                       if (!previous(i)) {
                         //pin i was just touched
-                        DEBUG_VALUELN(DEBUG_TRACE, "Touched pin ", i);
+                        DEBUG5_VALUELN("Touched pin ", i);
                       }
                     } else {
                       if (touched(i)) {
                         //pin i is no longer being touched
-                        DEBUG_VALUELN(DEBUG_TRACE, "Released pin ", i);
+                        DEBUG5_VALUELN("Released pin ", i);
                       }
                     }
                   }
@@ -408,8 +408,8 @@ void MPR121_State::updateState(void) {
         // Detect double tap
         if (now - tap_times[i] < DOUBLE_TAP_MS) {
           new_state |= SENSE_DOUBLE;
-          DEBUG_VALUE(DEBUG_HIGH, "Double tap:", i);
-          DEBUG_VALUELN(DEBUG_HIGH, " ms:", now - tap_times[i]);
+          DEBUG4_VALUE("Double tap:", i);
+          DEBUG4_VALUELN(" ms:", now - tap_times[i]);
         }
         tap_times[i] = now;
       }
@@ -418,8 +418,8 @@ void MPR121_State::updateState(void) {
         // Detect long touch
         if ((tap_times[i] != 0) && (now - tap_times[i] > LONG_TOUCH_MS)) {
           new_state |= SENSE_LONG;
-          DEBUG_VALUE(DEBUG_HIGH, "Long touch:", i);
-          DEBUG_VALUELN(DEBUG_HIGH, " ms:", now - tap_times[i]);
+          DEBUG4_VALUE("Long touch:", i);
+          DEBUG4_VALUELN(" ms:", now - tap_times[i]);
           tap_times[i] = 0;
         }
       }

@@ -18,6 +18,7 @@
 #define RS485UTILS_H
 
 #include "Arduino.h"
+#include "Socket.h"
 
 #include <RS485_non_blocking.h>
 #include <SoftwareSerial.h>
@@ -54,7 +55,7 @@ typedef struct {
 void printSocketMsg(const rs485_socket_msg_t *msg);
 void printBuffer(const byte *buff, int length);
 
-class RS485Socket 
+class RS485Socket : public Socket
 {
   public:
   RS485Socket();

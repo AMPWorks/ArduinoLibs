@@ -40,7 +40,7 @@ void loop()
   send_buffer[0] = 'T';
   send_buffer[1] = count++;
 
-  DEBUG_VALUELN(0, "Sending ", count);
+  DEBUG1_VALUELN("Sending ", count);
 
   rs485.sendMsgTo(DEST_ADDR, send_buffer, 2);
 

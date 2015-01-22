@@ -64,7 +64,7 @@ void Shift::Write(void)
     DEBUG_PRINT_HEX(2, _data[i]);
     shiftOut(_data_pin, _clock_pin, MSBFIRST, value);
   }
-  DEBUG_PRINT(2, "\n");
+  DEBUG3_PRINT("\n");
   for (i = 0; i < _registers; i++) {
     sendLatch();
   }

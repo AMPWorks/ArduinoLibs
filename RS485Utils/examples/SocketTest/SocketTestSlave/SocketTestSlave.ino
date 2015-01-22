@@ -35,8 +35,8 @@ void loop() {
   if (data != NULL) {
     char letter = data[0];
     byte count = data[1];
-    DEBUG_VALUE(0, "letter=", letter);
-    DEBUG_VALUELN(0, " count=", count);
+    DEBUG1_VALUE("letter=", letter);
+    DEBUG1_VALUELN(" count=", count);
     digitalWrite(RCV_LED, HIGH);
   } else {
     delay(10);
