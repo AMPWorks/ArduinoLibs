@@ -16,6 +16,8 @@
  *   3.3V -> 3.3V
  */
 
+#include "Debug.h"
+
 #include <Arduino.h>
 #include "MPR121.h"
 #include <Wire.h>

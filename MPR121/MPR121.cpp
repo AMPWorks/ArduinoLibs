@@ -17,7 +17,7 @@
 #include <Arduino.h>
 #include <Wire.h>
 
-//#define DEBUG_LEVEL DEBUG_HIGH
+//#define DEBUG_LEVEL DEBUG_TRACE
 #include <Debug.h>
 
 #include "MPR121.h"
@@ -196,6 +196,7 @@ void MPR121::initialize(boolean auto_enabled) {
   // Section F
   // Enable Auto Config and auto Reconfig
   if (auto_enabled) {
+    DEBUG2_PRINTLN("Auto-configure enabled");
     set_register(ATO_CFG0, 0x0B);
     set_register(ATO_CFGU, 0xC9);  // USL = (Vdd-0.7)/vdd*256 = 0xC9 @3.3V
     set_register(ATO_CFGL, 0x82);  // LSL = 0.65*USL = 0x82 @3.3V
