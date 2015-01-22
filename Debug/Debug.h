@@ -44,7 +44,7 @@
   #define DEBUG1_HEXVAL(x, y) { \
     close_line = true; Serial.print(F(x)); Serial.print(y, HEX); }
   #define DEBUG1_HEXVALLN(x, y) { \
-    close_line = false; Serial.print(F(x)); Serial.println(y); }
+      close_line = false; Serial.print(F(x)); Serial.println(y, HEX); }
   #define DEBUG_ENDLN() { close_line = false; Serial.println();}
 
   #define DEBUG_ERR(x) DEBUG1_PRINTLN(x);
