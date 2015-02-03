@@ -40,6 +40,7 @@ void PixelUtil::init(uint16_t _numPixels, const uint8_t dataPin, const uint8_t c
        * specified here.
        */
       FastLED.addLeds<WS2801, 12, 8, RGB>(leds, num_pixels);
+      setAllRGB(0, 0, 0);
     } else {
       DEBUG_ERR("Invalid Pixel pin configuration");
       DEBUG_ERR_STATE(DEBUG_ERR_BADPINS);
@@ -75,6 +76,13 @@ void PixelUtil::setAllRGB(byte r, byte g, byte b)
 {
   for (uint16_t led = 0; led < numPixels(); led++) {
     leds[led] = CRGB(r, g, b);
+  }
+}
+
+void PixelUtil::setAllRGB(uint32_t color)
+{
+  for (uint16_t led = 0; led < numPixels(); led++) {
+    setPixelRGB(led, color);
   }
 }
 
