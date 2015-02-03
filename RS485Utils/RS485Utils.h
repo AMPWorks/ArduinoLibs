@@ -52,6 +52,9 @@ typedef struct {
 // Get the source address from the data portion of a message
 #define RS485_SOURCE_FROM_DATA(x) (RS485_HDR_FROM_DATA(x)->source)
 
+// Get the destination address from the data portion of a message
+#define RS485_ADDRESS_FROM_DATA(x) (RS485_HDR_FROM_DATA(x)->address)
+
 void printSocketMsg(const rs485_socket_msg_t *msg);
 void printBuffer(const byte *buff, int length);
 
