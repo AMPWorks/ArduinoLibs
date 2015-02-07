@@ -59,7 +59,7 @@ void RS485Socket::init(byte _recvPin, byte _xmitPin, byte _enablePin,
 
     serial = new SoftwareSerial(_recvPin, _xmitPin);
 #if DEBUG_LEVEL == DEBUG_HIGH
-    if (debug) {
+    if (_debug) {
       channel = new RS485(serialDebugRead, serialAvailable, serialDebugWrite,
 			  recvLimit);
     } else

@@ -25,11 +25,8 @@
   #else
     #define DEBUG
   #endif
-#else
-  #define DEBUG_LEVEL DEBUG_NONE
 #endif
 
-#ifdef DEBUG_LEVEL
 #if DEBUG_LEVEL >= 1
   extern char close_line;
 
@@ -159,9 +156,6 @@
   #define DEBUG5_HEXVALLN(x, y)
   #define DEBUG5_COMMAND(x)
 #endif // #if DEBUG_LEVEL >= 5
-
-#endif // #ifdef DEBUG_LEVEL
-
 
   /*
    * TODO: This section is deprecated, delete when possible
