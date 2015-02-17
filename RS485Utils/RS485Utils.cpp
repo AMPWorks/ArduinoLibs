@@ -147,21 +147,19 @@ void RS485Socket::sendMsgTo(uint16_t address,
   msg->hdr.address = address;
   msg->hdr.flags = 0;
 
-#if DEBUG_LELEL ==DEBUG_HIGH
-  if (debug) {
-    DEBUG4_VALUE("XMIT:", msg_len);
-    DEBUG4_PRINT(" ");
-    printSocketMsg(msg);
-    DEBUG4_PRINT(" raw:");
-  }
+#if DEBUG_LEVEL == DEBUG_TRACE
+  DEBUG5_VALUE("XMIT:", msg_len);
+  DEBUG5_PRINT(" ");
+  printSocketMsg(msg);
+  DEBUG5_PRINT(" raw:");
 #endif
 
   digitalWrite(enablePin, HIGH);
   channel->sendMsg((byte *)msg, msg_len);
   digitalWrite(enablePin, LOW);
 
-#if DEBUG_LELEL ==DEBUG_HIGH
-  if (debug) DEBUG_PRINT_END();
+#if DEBUG_LEVEL ==DEBUG_TRACE
+  DEBUG_PRINT_END();
 #endif
 }
 
@@ -169,32 +167,28 @@ const byte *RS485Socket::getMsg(uint16_t address, unsigned int *retlen)
 {
   if (channel->update()) {
 
-#if DEBUG_LELEL ==DEBUG_HIGH
-    if (debug) {
-      DEBUG4_VALUE("getMsg:", getLength());
-    }
+#if DEBUG_LEVEL == DEBUG_TRACE
+    DEBUG5_VALUE("getMsg:", getLength());
 #endif
 
     const rs485_socket_msg_t *msg = (rs485_socket_msg_t *)channel->getData();
 
-#if DEBUG_LELEL ==DEBUG_HIGH
-    if (debug &&
-        (getLength() < sizeof (rs485_socket_hdr_t))) {
+#if DEBUG_LEVEL == DEBUG_TRACE
+    if (getLength() < sizeof (rs485_socket_hdr_t)) {
       DEBUG_ERR("ERROR-length < header");
     }
 
-    if (debug &&
-        (getLength() < (sizeof (rs485_socket_hdr_t) + msg->hdr.length))) {
+    if (getLength() < (sizeof (rs485_socket_hdr_t) + msg->hdr.length)) {
       DEBUG_ERR("ERROR-length < header + data");
     }
 
-    if (debug) {
-      DEBUG4_PRINT(" RECV: ");
-      printSocketMsg(msg);
-    }
+    DEBUG4_PRINT(" RECV: ");
+    printSocketMsg(msg);
 #endif
 
-    if ((msg->hdr.address == address) || (msg->hdr.address == RS485_ADDR_ANY)) {
+    if ((address == RS485_ADDR_ANY) || 
+        (msg->hdr.address == address) || 
+        (msg->hdr.address == RS485_ADDR_ANY)) {
       *retlen = msg->hdr.length;
       return &msg->data[0];
     }
