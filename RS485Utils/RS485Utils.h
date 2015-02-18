@@ -30,6 +30,9 @@
 // "Broadcast" address
 #define RS485_ADDR_ANY (uint16_t)-1
 
+// "Invalid address"
+#define RS485_ADDR_INVALID (uint16_t)-2
+
 typedef struct {
   byte     ID;
   byte     length;
@@ -73,6 +76,7 @@ class RS485Socket : public Socket
 
   void sendMsgTo(uint16_t address, const byte * data, const byte length);
   const byte *getMsg(uint16_t address, unsigned int *retlen);
+  const byte *getMsg(unsigned int *retlen);
   byte getLength();
 
   boolean initialized();

@@ -163,6 +163,10 @@ void RS485Socket::sendMsgTo(uint16_t address,
 #endif
 }
 
+const byte *RS485Socket::getMsg(unsigned int *retlen) {
+  return getMsg(sourceAddress, retlen);
+}
+
 const byte *RS485Socket::getMsg(uint16_t address, unsigned int *retlen) 
 {
   if (channel->update()) {
@@ -184,6 +188,7 @@ const byte *RS485Socket::getMsg(uint16_t address, unsigned int *retlen)
 
     DEBUG4_PRINT(" RECV: ");
     printSocketMsg(msg);
+    DEBUG_PRINT_END();
 #endif
 
     if ((address == RS485_ADDR_ANY) || 
@@ -206,9 +211,10 @@ byte RS485Socket::getLength()
 #if DEBUG_LEVEL >= DEBUG_HIGH
 void printSocketMsg(const rs485_socket_msg_t *msg) 
 {
-  DEBUG4_HEXVAL( "i:",  msg->hdr.ID);
-  DEBUG4_HEXVAL( " l:", msg->hdr.length);
-  DEBUG4_HEXVAL( " a:", msg->hdr.address);
+  DEBUG4_VALUE( "i:",  msg->hdr.ID);
+  DEBUG4_VALUE( " l:", msg->hdr.length);
+  DEBUG4_VALUE( " s:", msg->hdr.source);
+  DEBUG4_VALUE( " a:", msg->hdr.address);
   DEBUG4_HEXVAL( " f:", msg->hdr.flags);
   DEBUG4_PRINT(" data:");
 printBuffer(msg->data, msg->hdr.length);
