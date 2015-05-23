@@ -17,7 +17,7 @@
 
 RS485Socket rs485(PIN_RS485_1, PIN_RS485_2, PIN_RS485_3, 0);
 
-#define SEND_BUFFER_SIZE (sizeof (rs485_socket_hdr_t) + 64)
+#define SEND_BUFFER_SIZE RS485_BUFFER_TOTAL(64)
 byte databuffer[SEND_BUFFER_SIZE];
 byte *send_buffer;
 

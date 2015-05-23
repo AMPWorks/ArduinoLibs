@@ -180,10 +180,12 @@ const byte *RS485Socket::getMsg(uint16_t address, unsigned int *retlen)
 #if DEBUG_LEVEL == DEBUG_TRACE
     if (getLength() < sizeof (rs485_socket_hdr_t)) {
       DEBUG_ERR("ERROR-length < header");
+      goto ERROR_OUT;
     }
 
     if (getLength() < (sizeof (rs485_socket_hdr_t) + msg->hdr.length)) {
       DEBUG_ERR("ERROR-length < header + data");
+      goto ERROR_OUT;
     }
 
     DEBUG4_PRINT(" RECV: ");
@@ -191,13 +193,13 @@ const byte *RS485Socket::getMsg(uint16_t address, unsigned int *retlen)
     DEBUG_PRINT_END();
 #endif
 
-    if ((address == RS485_ADDR_ANY) || 
-        (msg->hdr.address == address) || 
-        (msg->hdr.address == RS485_ADDR_ANY)) {
+    if (SOCKET_ADDRESS_MATCH(address, msg->hdr.address)) {
       *retlen = msg->hdr.length;
       return &msg->data[0];
     }
   }
+
+ ERROR_OUT:
 
   *retlen = 0;
   return NULL;
