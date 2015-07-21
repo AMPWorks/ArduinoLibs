@@ -84,6 +84,7 @@ void RS485Socket::setup()
     DEBUG_ERR_STATE(DEBUG_ERR_UNINIT);
   }
 
+  DEBUG5_VALUELN("RS485 setup: ", 28800);
   serial->begin(28800); // XXX - Could this be a higher rate?
 
   channel->begin();
@@ -126,10 +127,20 @@ int RS485Socket::serialAvailable()
   return serial->available();
 }
 
-
-byte * RS485Socket::initBuffer(byte * data) 
+/*
+ * Initialize a data buffer.  The actual buffer should be at least a header
+ * larger than the specified data_size.
+ */
+byte * RS485Socket::initBuffer(byte * data, uint16_t data_size) 
 {
-  return data + sizeof (rs485_socket_hdr_t);
+  send_data_size = data_size; // XXX?
+  send_buffer = data + sizeof (rs485_socket_hdr_t);
+  return send_buffer;
+}
+
+byte * RS485Socket::initBuffer(byte * data) {
+  DEBUG1_PRINTLN("initbuffer() deprecated");
+  return initBuffer(data, 0);
 }
 
 void RS485Socket::sendMsgTo(uint16_t address,
@@ -209,6 +220,19 @@ byte RS485Socket::getLength()
 {
   return channel->getLength();
 }
+
+void *RS485Socket::headerFromData(const void *data) {
+  return ((rs485_socket_hdr_t *)((long)data - sizeof (rs485_socket_hdr_t)));
+}
+
+socket_addr_t RS485Socket::sourceFromData(void *data) {
+  return ((rs485_socket_hdr_t *)headerFromData(data))->source;
+}
+
+socket_addr_t RS485Socket::destFromData(void *data) {
+  return ((rs485_socket_hdr_t *)headerFromData(data))->address;
+}
+
 
 #if DEBUG_LEVEL >= DEBUG_HIGH
 void printSocketMsg(const rs485_socket_msg_t *msg) 

@@ -54,10 +54,16 @@ void XBeeSocket::setup() {
   rx = ZBRxResponse();
 }
 
-byte *XBeeSocket::initBuffer(byte * data) 
+/*
+ * Initialize a data buffer.  The actual buffer should be at least a header
+ * larger than the specified data_size.
+ */
+byte *XBeeSocket::initBuffer(byte * data, uint16_t data_size) 
 {
   // TODO: Do validation of maximum packet size?
-  return data + sizeof (xbee_socket_hdr_t);
+  send_data_size = data_size;
+  send_buffer = data + sizeof (xbee_socket_hdr_t);
+  return send_buffer;
 }
 
 
@@ -65,7 +71,7 @@ void XBeeSocket::sendMsgTo(uint16_t address,
                            const byte *data,
                            const byte datalength) 
 {
-  xbee_socket_msg_t *msg = XBEE_MSG_FROM_DATA(data);
+  xbee_socket_msg_t *msg = (xbee_socket_msg_t *)headerFromData(data);
 
   // TODO: Should this be using the broadcast address or something else?
   XBeeAddress64 addr = XBeeAddress64(0x0, 0xFFFF);
@@ -138,3 +144,16 @@ byte XBeeSocket::getLength()
 {
   return rx.getDataLength();
 }
+
+void *XBeeSocket::headerFromData(const void *data) {
+  return ((xbee_socket_hdr_t *)((long)data - sizeof (xbee_socket_hdr_t)));
+}
+
+socket_addr_t XBeeSocket::sourceFromData(void *data) {
+  return ((xbee_socket_hdr_t *)headerFromData(data))->source;
+}
+
+socket_addr_t XBeeSocket::destFromData(void *data) {
+  return ((xbee_socket_hdr_t *)headerFromData(data))->address;
+}
+

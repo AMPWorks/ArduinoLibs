@@ -28,10 +28,10 @@
 #define RS485_RECV_BUFFER 64 // 140 // XXX: This is a lot of buffer space
 
 // "Broadcast" address
-#define RS485_ADDR_ANY (uint16_t)-1
+#define RS485_ADDR_ANY SOCKET_ADDR_ANY
 
 // "Invalid address"
-#define RS485_ADDR_INVALID (uint16_t)-2
+#define RS485_ADDR_INVALID SOCKET_ADDR_INVALID
 
 typedef struct {
   byte     ID;
@@ -50,13 +50,13 @@ typedef struct {
 } rs485_socket_msg_t;
 
 // Get the socket header from the data portion of a message
-#define RS485_HDR_FROM_DATA(x) ((rs485_socket_hdr_t *)((long)x - sizeof (rs485_socket_hdr_t)))
+#define RS485_HDR_FROM_DATA(x) ((rs485_socket_hdr_t *)((long)x - sizeof (rs485_socket_hdr_t))) // DEPRECATED
 
 // Get the source address from the data portion of a message
-#define RS485_SOURCE_FROM_DATA(x) (RS485_HDR_FROM_DATA(x)->source)
+#define RS485_SOURCE_FROM_DATA(x) (RS485_HDR_FROM_DATA(x)->source) // DEPRECATED
 
 // Get the destination address from the data portion of a message
-#define RS485_ADDRESS_FROM_DATA(x) (RS485_HDR_FROM_DATA(x)->address)
+#define RS485_ADDRESS_FROM_DATA(x) (RS485_HDR_FROM_DATA(x)->address) // DEPRECATED
 
 void printSocketMsg(const rs485_socket_msg_t *msg);
 void printBuffer(const byte *buff, int length);
@@ -72,12 +72,16 @@ class RS485Socket : public Socket
 	    byte _recvsize, boolean _debug);
 
   void setup();
+  byte * initBuffer(byte * data, uint16_t data_size);
   byte * initBuffer(byte * data);
 
   void sendMsgTo(uint16_t address, const byte * data, const byte length);
   const byte *getMsg(uint16_t address, unsigned int *retlen);
   const byte *getMsg(unsigned int *retlen);
   byte getLength();
+  void *headerFromData(const void *data);
+  socket_addr_t sourceFromData(void *data);
+  socket_addr_t destFromData(void *data);
 
   boolean initialized();
 

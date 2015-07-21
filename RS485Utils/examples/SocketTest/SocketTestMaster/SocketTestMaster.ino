@@ -1,7 +1,9 @@
 /*
  * Example of a minimal RS485Socket master
  */
-#define DEBUG_LEVEL DEBUG_HIGH
+#ifndef DEBUG_LEVEL
+  #define DEBUG_LEVEL DEBUG_HIGH
+#endif
 #include "Debug.h"
 
 #include <RS485_non_blocking.h>
@@ -17,7 +19,8 @@
 
 RS485Socket rs485(PIN_RS485_1, PIN_RS485_2, PIN_RS485_3, 0);
 
-#define SEND_BUFFER_SIZE RS485_BUFFER_TOTAL(64)
+#define DATA_SIZE 64
+#define SEND_BUFFER_SIZE RS485_BUFFER_TOTAL(DATA_SIZE)
 byte databuffer[SEND_BUFFER_SIZE];
 byte *send_buffer;
 
@@ -27,7 +30,7 @@ void setup()
   pinMode(DEBUG_PIN, OUTPUT);
 
   rs485.setup();
-  send_buffer = rs485.initBuffer(databuffer);
+  send_buffer = rs485.initBuffer(databuffer, DATA_SIZE);
 }
 
 #define MY_ADDR   0

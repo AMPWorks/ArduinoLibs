@@ -28,7 +28,8 @@
 XBee xbee = XBee();
 XBeeSocket xb(&xbee, MY_ADDR);
 
-#define SEND_BUFFER_SIZE (XBEE_BUFFER_TOTAL(64))
+#define DATA_SIZE 64
+#define SEND_BUFFER_SIZE (XBEE_BUFFER_TOTAL(DATA_SIZE))
 byte databuffer[SEND_BUFFER_SIZE];
 byte *send_buffer;
 
@@ -37,7 +38,7 @@ void setup()
   Serial.begin(9600);
 
   xb.setup();
-  send_buffer = xb.initBuffer(databuffer);
+  send_buffer = xb.initBuffer(databuffer, DATA_SIZE);
 
   pinMode(STATUS_LED, OUTPUT);
   pinMode(ERROR_LED, OUTPUT);
