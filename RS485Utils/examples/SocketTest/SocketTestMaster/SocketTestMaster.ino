@@ -8,16 +8,24 @@
 
 #include <RS485_non_blocking.h>
 #include <SoftwareSerial.h>
+
+#include "Socket.h"
 #include "RS485Utils.h"
 
 // The following pins should be adjusted based on your setup
-#define PIN_RS485_1     2
-#define PIN_RS485_2     7
-#define PIN_RS485_3     4
+#if 1
+#define PIN_RS485_XMIT        7
+#define PIN_RS485_RECV        4
+#define PIN_RS485_ENABLED     2
+#else
+#define PIN_RS485_1     22 //2  22
+#define PIN_RS485_2     21 //7  21
+#define PIN_RS485_3     23 //4  23
+#endif
 
 #define DEBUG_PIN 13
 
-RS485Socket rs485(PIN_RS485_1, PIN_RS485_2, PIN_RS485_3, 0);
+RS485Socket rs485(PIN_RS485_RECV, PIN_RS485_XMIT, PIN_RS485_ENABLED, (DEBUG_LEVEL != 0));
 
 #define DATA_SIZE 64
 #define SEND_BUFFER_SIZE RS485_BUFFER_TOTAL(DATA_SIZE)
