@@ -57,6 +57,7 @@ void RS485Socket::init(byte _recvPin, byte _xmitPin, byte _enablePin,
     sourceAddress = _address;
     recvLimit = _recvsize;
 
+    pinMode(enablePin, OUTPUT);
     serial = new SoftwareSerial(_recvPin, _xmitPin);
 #if DEBUG_LEVEL == DEBUG_HIGH
     if (_debug) {
