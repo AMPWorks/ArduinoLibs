@@ -161,6 +161,13 @@ class MPR121
 #define INTERUPT_3_PIN -1
 #define INTERUPT_4_PIN -1
 #define INTERUPT_5_PIN -1
+#elif defined(__AVR_ATmega32U4__)
+#define INTERUPT_0_PIN  2
+#define INTERUPT_1_PIN  3
+#define INTERUPT_2_PIN  7
+#define INTERUPT_3_PIN  0
+#define INTERUPT_4_PIN  1
+#define INTERUPT_5_PIN -1
 #else
 XXX - This board needs to be defined
 #define INTERUPT_0_PIN -1
