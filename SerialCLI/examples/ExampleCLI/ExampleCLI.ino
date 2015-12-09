@@ -7,6 +7,8 @@
 #include <Arduino.h>
 #include <SerialCLI.h>
 
+void handler(char **tokens, byte numtokens);
+
 SerialCLI serialcli(32, handler);
 
 void setup() {
