@@ -24,7 +24,7 @@ PixelUtil::PixelUtil(uint16_t numPixels, uint8_t dataPin, uint8_t clockPin,
   init(numPixels, dataPin, clockPin, order);
 }
 
-void PixelUtil::init(uint16_t _numPixels, const uint8_t dataPin, const uint8_t clockPin,
+void PixelUtil::init(const uint16_t _numPixels, const uint8_t dataPin, const uint8_t clockPin,
                      const uint8_t order)
 {
   if (initialized) {
@@ -34,40 +34,39 @@ void PixelUtil::init(uint16_t _numPixels, const uint8_t dataPin, const uint8_t c
     num_pixels = _numPixels;
     leds = new CRGB[num_pixels];
 
+  /*
+   * Since the FastLED library uses templates each pin combo needs to be
+   * specified here.
+   *
+   * NOTE: The appropriate #def needs to be set manually here or from the
+   * platformio build script.
+   */
+#ifdef PIXELS_WS2812B_3
+    if (dataPin == 3) {
+      FastLED.addLeds<WS2812B, 3, RGB>(leds, num_pixels);
+    } else
+#endif
 #ifdef PIXELS_5_7 // This is for the 1284P based module using hardware SPI
     if ((dataPin == 5) && (clockPin == 7)) {
-      /*
-       * Since the FastLED library uses templates each pin combo needs to be
-       * specified here.
-       */
-      // XXX - These need to be #def'd from platformio build script?
       FastLED.addLeds<WS2801, 5, 7, RGB>(leds, num_pixels);
-      setAllRGB(0, 0, 0);
-    }
-#elif PIXELS_19_20
-    if ((dataPin == 19) && (clockPin == 20)) {
-      /*
-       * Since the FastLED library uses templates each pin combo needs to be
-       * specified here.
-       */
-      // XXX - These need to be #def'd from platformio build script?
-      FastLED.addLeds<WS2801, 19, 20, RGB>(leds, num_pixels);
-      setAllRGB(0, 0, 0);
-    }
-#else
-    if ((dataPin == 12) && (clockPin == 8)) {
-      /*
-       * Since the FastLED library uses templates each pin combo needs to be
-       * specified here.
-       */
-      FastLED.addLeds<WS2801, 12, 8, RGB>(leds, num_pixels);
-      setAllRGB(0, 0, 0);
-    }
+    } else
 #endif
-    else {
+#ifdef PIXELS_19_20
+    if ((dataPin == 19) && (clockPin == 20)) {
+      FastLED.addLeds<WS2801, 19, 20, RGB>(leds, num_pixels);
+    } else
+#endif
+#if !defined(PIXELS_WS2812B_3) && !defined(PIXELS_5_7) && !defined(PIXELS_19_20)
+    // Default pin configuration and LEDs
+    if ((dataPin == 12) && (clockPin == 8)) {
+      FastLED.addLeds<WS2801, 12, 8, RGB>(leds, num_pixels);
+    } else
+#endif
+    {
       DEBUG_ERR("Invalid Pixel pin configuration");
       DEBUG_ERR_STATE(DEBUG_ERR_BADPINS);
     }
+    setAllRGB(0, 0, 0);
     FastLED.show(); // XXX: Should this be zero'd first?  or skipped?
   }
   initialized = true;
