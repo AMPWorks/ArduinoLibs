@@ -33,7 +33,7 @@ class PixelUtil
   PixelUtil(uint16_t numPixels, uint8_t dataPin, uint8_t clockPin,
             uint8_t order=RGB);
   void init(uint16_t numPixels, uint8_t dataPin, uint8_t clockPin,
-	    uint8_t order=RGB);
+            uint8_t order=RGB);
   
   uint16_t numPixels();
   void setPixelRGB(uint16_t led, byte r, byte g, byte b);

@@ -8,7 +8,9 @@
 
 // By default the XBee uses the serial interface and so DEBUG data can't
 // be sent to it.  This is included for debug error conditions.
-#define DEBUG_LEVEL DEBUG_TRACE
+//#ifndef DEBUG_LEVEL
+  #define DEBUG_LEVEL DEBUG_NONE
+//#endif
 #include "Debug.h"
 
 #include "Xbee.h"

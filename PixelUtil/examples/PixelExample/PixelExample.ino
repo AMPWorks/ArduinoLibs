@@ -4,11 +4,17 @@
 #ifndef DEBUG_LEVEL
 #define DEBUG_LEVEL DEBUG_HIGH
 #endif
+
 #include "Debug.h"
 
 #include "FastLED.h"
 #include "PixelUtil.h"
 
+
+/*
+ * Define the appropriate type of LEDs and the pins being used
+ */
+//#define PIXELS_WS2812B_3
 #ifdef PIXELS_WS2812B_3
 #define NUM_LEDS  16
 #define DATA_PIN   3

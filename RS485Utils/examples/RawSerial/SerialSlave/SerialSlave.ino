@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include <SoftwareSerial.h>
 
 SoftwareSerial rs485 (2, 3);  // receive pin, transmit pin
