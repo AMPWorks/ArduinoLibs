@@ -46,6 +46,11 @@ void PixelUtil::init(const uint16_t _numPixels, const uint8_t dataPin, const uin
       FastLED.addLeds<WS2812B, 3, GRB>(leds, num_pixels);
     } else
 #endif
+#ifdef PIXELS_WS2812B_10
+    if (dataPin == 10) {
+      FastLED.addLeds<WS2812B, 10, GRB>(leds, num_pixels);
+    } else
+#endif
 #ifdef PIXELS_WS2812B_12
     if (dataPin == 12) {
       FastLED.addLeds<WS2812B, 12, GRB>(leds, num_pixels);
