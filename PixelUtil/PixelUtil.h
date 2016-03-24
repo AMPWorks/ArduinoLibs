@@ -14,15 +14,17 @@ class PRGB {
   void incrColor(int r, int g, int b);
 
   uint32_t color();
+  CRGB getCRGB();
+
 
   //#define BIG_PIXELS // Uncomment to allow > 256 pixels
 #ifdef BIG_PIXELS
   uint16_t pixel;
 #else
-  uint8_t pixel;
+  uint8_t pixel;  // XXX: Can this be eliminated?!
 #endif
   byte red, green, blue;
-};
+}; // XXX: Eliminate this class, replace with CRGB from FastLED!
 
 class PixelUtil 
 {

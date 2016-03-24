@@ -238,6 +238,9 @@ uint32_t PRGB::color() {
   return pixel_color(red, green, blue);
 }
 
+CRGB PRGB::getCRGB() {
+  return CRGB(red, green, blue);
+}
 /*******************************************************************************
  * Generic color manipulation functions
  ******************************************************************************/
