@@ -17,14 +17,21 @@
 #include <RS485_non_blocking.h>
 #include <SoftwareSerial.h>
 
-//#define DEBUG_LEVEL DEBUG_HIGH
+#ifdef DEBUG_LEVEL_RS485UTILS
+  #define DEBUG_LEVEL DEBUG_LEVEL_RS485UTILS
+#endif
+
+#ifndef DEBUG_LEVEL
+//  #define DEBUG_LEVEL DEBUG_HIGH
+#endif
 #include "Debug.h"
 
 #include "RS485Utils.h"
 
 // XXX: Need to figure out how to use non-static function pointers so this
 //      can be a class field.
-SoftwareSerial *serial;
+
+SERIAL_TYPE *serial;
 
 RS485Socket::RS485Socket() {
   enablePin = 0;
@@ -32,46 +39,57 @@ RS485Socket::RS485Socket() {
   channel = NULL;
 }
 
-RS485Socket::RS485Socket(byte _recvPin, byte _xmitPin, byte _enablePin, 
-			 uint16_t _address) 
+RS485Socket::RS485Socket(SERIAL_TYPE *_serial, byte _enablePin,
+                         socket_addr_t _address) {
+  serial = NULL;
+  init(_serial, _enablePin, _address, RS485_RECV_BUFFER, false);
+}
+
+RS485Socket::RS485Socket(byte _recvPin, byte _xmitPin, byte _enablePin,
+                         socket_addr_t _address)
 {
   serial = NULL;
   init(_recvPin, _xmitPin, _enablePin, _address, RS485_RECV_BUFFER, false);
 }
 
-RS485Socket::RS485Socket(byte _recvPin, byte _xmitPin, byte _enablePin, 
-			 uint16_t _address, boolean _debug) 
+RS485Socket::RS485Socket(byte _recvPin, byte _xmitPin, byte _enablePin,
+                         socket_addr_t _address, boolean _debug)
 {
   serial = NULL;
   init(_recvPin, _xmitPin, _enablePin, _address, RS485_RECV_BUFFER, _debug);
 }
 
+void RS485Socket::init(SERIAL_TYPE *_serial, byte _enablePin,
+                       socket_addr_t _address, byte _recvsize, boolean debug) {
+  init_general(_serial, _enablePin, _address, _recvsize, debug);
+}
+
 void RS485Socket::init(byte _recvPin, byte _xmitPin, byte _enablePin,
-		       uint16_t _address, byte _recvsize, boolean _debug) {
+                       socket_addr_t _address, byte _recvsize, boolean _debug) {
   if (serial != NULL) {
     DEBUG_ERR("RS485Socket::init already initialized");
     DEBUG_ERR_STATE(DEBUG_ERR_REINIT);
     // XXX - Could re-init the config?
   } else {
-    enablePin = _enablePin;
-    sourceAddress = _address;
-    recvLimit = _recvsize;
-
-    pinMode(enablePin, OUTPUT);
     serial = new SoftwareSerial(_recvPin, _xmitPin);
-#if DEBUG_LEVEL == DEBUG_HIGH
-    if (_debug) {
-      channel = new RS485(serialDebugRead, serialAvailable, serialDebugWrite,
-			  recvLimit);
-    } else
-#endif
-    {
-      channel = new RS485(serialRead, serialAvailable, serialWrite,
-			  recvLimit);
-    }
-
-    currentMsgID = 0;
+    init_general(serial, _enablePin, _address, _recvsize, _debug);
   }
+}
+
+void RS485Socket::init_general(SERIAL_TYPE *_serial, byte _enablePin,
+                               socket_addr_t _address, byte _recvsize,
+                               boolean _debug) {
+  enablePin = _enablePin;
+  sourceAddress = _address;
+  recvLimit = _recvsize;
+  serial = _serial;
+
+  pinMode(enablePin, OUTPUT);
+  channel = new RS485(serialRead, serialAvailable, serialWrite,
+                      recvLimit);
+
+  currentMsgID = 0;
+
 }
 
 boolean RS485Socket::initialized() {
@@ -96,31 +114,39 @@ void RS485Socket::setup()
 }
 
 
+#if DEBUG_LEVEL == DEBUG_TRACE
 size_t RS485Socket::serialWrite(const byte value) 
 {
+  DEBUG4_PRINT("_");
+  if (value <= 0xF) {
+    DEBUG4_HEX(0);
+  }
+  DEBUG4_HEX(value);
+
   return serial->write(value);
 }
 
 int RS485Socket::serialRead() 
 {
-  return serial->read();
-}
-
-#if (DEBUG_LEVEL == DEBUG_HIGH)
-size_t RS485Socket::serialDebugWrite(const byte value) 
-{
+  int value = serial->read();
+  DEBUG4_PRINT("-");
+  if (value <= 0xF) {
+    DEBUG4_HEX(0);
+  }
   DEBUG4_HEX(value);
-  DEBUG4_PRINT(" ");
+  return value;
+}
+#else
+size_t RS485Socket::serialWrite(const byte value)
+{
   return serial->write(value);
 }
 
-int RS485Socket::serialDebugRead() 
+int RS485Socket::serialRead()
 {
-  int value = serial->read();
-  DEBUG4_HEX(value);
-  DEBUG4_PRINT(" ");
-  return value;
+  return serial->read();
 }
+
 #endif
 
 int RS485Socket::serialAvailable() 
@@ -144,7 +170,7 @@ byte * RS485Socket::initBuffer(byte * data) {
   return initBuffer(data, 0);
 }
 
-void RS485Socket::sendMsgTo(uint16_t address,
+void RS485Socket::sendMsgTo(socket_addr_t address,
                             const byte *data,
                             const byte datalength) 
 {
@@ -160,36 +186,34 @@ void RS485Socket::sendMsgTo(uint16_t address,
   msg->hdr.flags = 0;
 
 #if DEBUG_LEVEL == DEBUG_TRACE
+  DEBUG_ENDLN();
   DEBUG5_VALUE("XMIT:", msg_len);
   DEBUG5_PRINT(" ");
   printSocketMsg(msg);
-  DEBUG5_PRINT(" raw:");
+  DEBUG_ENDLN()
 #endif
 
   digitalWrite(enablePin, HIGH);
   channel->sendMsg((byte *)msg, msg_len);
   digitalWrite(enablePin, LOW);
-
-#if DEBUG_LEVEL ==DEBUG_TRACE
-  DEBUG_PRINT_END();
-#endif
 }
 
 const byte *RS485Socket::getMsg(unsigned int *retlen) {
   return getMsg(sourceAddress, retlen);
 }
 
-const byte *RS485Socket::getMsg(uint16_t address, unsigned int *retlen) 
+const byte *RS485Socket::getMsg(socket_addr_t address, unsigned int *retlen)
 {
   if (channel->update()) {
 
-#if DEBUG_LEVEL == DEBUG_TRACE
+#if DEBUG_LEVEL >= DEBUG_TRACE
+    DEBUG_ENDLN()
     DEBUG5_VALUE("getMsg:", getLength());
 #endif
 
     const rs485_socket_msg_t *msg = (rs485_socket_msg_t *)channel->getData();
 
-#if DEBUG_LEVEL == DEBUG_TRACE
+#if DEBUG_LEVEL >= DEBUG_TRACE
     if (getLength() < sizeof (rs485_socket_hdr_t)) {
       DEBUG_ERR("ERROR-length < header");
       goto ERROR_OUT;

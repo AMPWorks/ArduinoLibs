@@ -27,6 +27,14 @@
 // being statically defined
 #define RS485_RECV_BUFFER 64 // 140 // XXX: This is a lot of buffer space
 
+//#define RS485_HARDWARE_SERIAL
+#ifdef RS485_HARDWARE_SERIAL
+#define SERIAL_TYPE HardwareSerial
+#else
+#define SERIAL_TYPE SoftwareSerial
+#endif
+
+
 // "Broadcast" address
 #define RS485_ADDR_ANY SOCKET_ADDR_ANY
 
@@ -36,8 +44,8 @@
 typedef struct {
   byte     ID;
   byte     length;
-  uint16_t source;
-  uint16_t address;
+	socket_addr_t source;
+	socket_addr_t address;
   byte     flags;
 } rs485_socket_hdr_t;
 
@@ -65,18 +73,22 @@ class RS485Socket : public Socket
 {
   public:
   RS485Socket();
-  RS485Socket(byte _recvPin, byte _xmitPin, byte _enablePin, uint16_t _address);
-  RS485Socket(byte _recvPin, byte _xmitPin, byte _enablePin, uint16_t _address,
+	RS485Socket(SERIAL_TYPE *_serial, byte _enablePin, socket_addr_t _address);
+  RS485Socket(byte _recvPin, byte _xmitPin, byte _enablePin, socket_addr_t _address);
+  RS485Socket(byte _recvPin, byte _xmitPin, byte _enablePin, socket_addr_t _address,
 	      boolean debug);
-  void init(byte _recvPin, byte _xmitPin, byte _enablePin, uint16_t _address,
+
+	void init(SERIAL_TYPE *_serial, byte _enablePin, socket_addr_t _address,
+						byte _recvsize, boolean debug);
+  void init(byte _recvPin, byte _xmitPin, byte _enablePin, socket_addr_t _address,
 	    byte _recvsize, boolean _debug);
 
   void setup();
   byte * initBuffer(byte * data, uint16_t data_size);
   byte * initBuffer(byte * data);
 
-  void sendMsgTo(uint16_t address, const byte * data, const byte length);
-  const byte *getMsg(uint16_t address, unsigned int *retlen);
+  void sendMsgTo(socket_addr_t address, const byte * data, const byte length);
+  const byte *getMsg(socket_addr_t address, unsigned int *retlen);
   const byte *getMsg(unsigned int *retlen);
   byte getLength();
   void *headerFromData(const void *data);
@@ -86,7 +98,7 @@ class RS485Socket : public Socket
   boolean initialized();
 
   byte recvLimit;
-  uint16_t sourceAddress;
+	socket_addr_t sourceAddress;
 
  private:
   byte enablePin;
@@ -99,6 +111,10 @@ class RS485Socket : public Socket
   static int serialRead();
   static int serialDebugRead();
   static int serialAvailable();
+
+	void init_general(SERIAL_TYPE *_serial,  byte _enablePin,
+										socket_addr_t _address, byte _recvsize,
+										boolean _debug);
 };
 
 #endif // RS485UTILS_H
