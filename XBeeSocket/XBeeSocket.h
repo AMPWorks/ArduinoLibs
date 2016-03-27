@@ -47,7 +47,7 @@ class XBeeSocket : public Socket {
   socket_addr_t destFromData(void *data);
 
   byte recvLimit;
-  uint16_t sourceAddress;
+  socket_addr_t sourceAddress;
 
  private:
 
