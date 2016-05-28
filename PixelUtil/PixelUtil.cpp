@@ -46,6 +46,11 @@ void PixelUtil::init(const uint16_t _numPixels, const uint8_t dataPin, const uin
       FastLED.addLeds<WS2812B, 3, GRB>(leds, num_pixels);
     } else
 #endif
+#ifdef PIXELS_WS2812B_9
+    if (dataPin == 9) {
+      FastLED.addLeds<WS2812B, 9, GRB>(leds, num_pixels);
+    } else
+#endif
 #ifdef PIXELS_WS2812B_10
     if (dataPin == 10) {
       FastLED.addLeds<WS2812B, 10, GRB>(leds, num_pixels);
@@ -91,6 +96,10 @@ uint16_t PixelUtil::numPixels()
 void PixelUtil::setPixelRGB(uint16_t led, byte r, byte g, byte b)
 {
   leds[led] = CRGB(r, g, b);
+}
+
+void PixelUtil::setPixelRGB(uint16_t led, CRGB rgb) {
+  leds[led] = rgb;
 }
 
 void PixelUtil::setPixelRGB(uint16_t led, uint32_t color)
