@@ -71,6 +71,11 @@ void PixelUtil::init(const uint16_t _numPixels, const uint8_t dataPin, const uin
       FastLED.addLeds<WS2801, 19, 20, RGB>(leds, num_pixels);
     } else
 #endif
+#ifdef PIXELS_ADA102_9_10
+    if ((dataPin == 9) && (clockPin == 10)) {
+      FastLED.addLeds<WS2801, 9, 10, RGB>(leds, num_pixels);
+    } else
+#endif
 #if !defined(PIXELS_WS2812B_3) && !defined(PIXELS_WS2801_5_7) && !defined(PIXELS_WS2801_19_20)
     // Default pin configuration and LEDs
     if ((dataPin == 12) && (clockPin == 8)) {
