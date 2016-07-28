@@ -8,7 +8,7 @@
  * and reading configuration values for the MPR121.
  *
  * By default, the following pins on the MPR121 should be attached to these
- * Arduino pins
+ * Arduino pins (for Uno, Nano, or equivalent ATMega328)
  *   SCL  -> Analog 5 (I2C Clock)
  *   SDA  -> Analog 4 (I2C Data)
  *   IRQ  -> Digital 3
@@ -16,14 +16,21 @@
  *   3.3V -> 3.3V
  */
 
-#include "Debug.h"
-
 #include <Arduino.h>
 #include "MPR121.h"
 #include <Wire.h>
 
 #define I2C_ADDRESS 0x5A // 0x5A - 0x5D
-#define IRQ_PIN 2
+
+/*
+ * Specify the IRQ pin the MPR121 is attached to if not specified in the
+ * compiler environment.
+ */
+#ifndef IRQ_PIN
+  #define IRQ_PIN 1
+  //#define IRQ_PIN 2
+  //#define IRQ_PIN 3
+#endif
 
 #define DEBUG_LED 13
 
@@ -31,6 +38,9 @@ MPR121 touch;
 
 void setup() {
   Serial.begin(9600);
+
+  delay(2000); // Delay initialization
+
   Serial.println(F("MPR121 Basic Use initializing"));
   Serial.print(F(" * IRQ Pin:"));
   Serial.println(IRQ_PIN);
@@ -113,6 +123,16 @@ void checkSerial() {
   }
 }
 
+void print_usage() {
+  Serial.print(F(
+     "Usage:\n"
+     "  t <sensor> <trigger> <release>' - Set the touch thresholds for a sensor\n"
+     "  d <trigger> <release>' - Set the debounce values for a sensor\n"
+     "  r <register>' - Read the indicated register's value\n"
+     "  s <register> <value>' - Set the value of a register\n"
+       ));
+}
+
 /*
  * Available serial commands:
  * 
@@ -150,6 +170,11 @@ void handleSerial(char *command) {
 
   token = 4;
   switch (tokens[0][0]) {
+    case '?':
+    case 'h': {
+      print_usage();
+      break;
+    }
     case 't': {
       int sensor = atoi(tokens[1]);
       int trigger = atoi(tokens[2]);
