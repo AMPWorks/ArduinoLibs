@@ -13,7 +13,7 @@
 #endif
 #include "Debug.h"
 
-#include "Xbee.h"
+#include "XBee.h"
 #include "XBeeSocket.h"
 
 
