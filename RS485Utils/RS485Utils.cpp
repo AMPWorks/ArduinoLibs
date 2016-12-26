@@ -71,7 +71,11 @@ void RS485Socket::init(byte _recvPin, byte _xmitPin, byte _enablePin,
     DEBUG_ERR_STATE(DEBUG_ERR_REINIT);
     // XXX - Could re-init the config?
   } else {
+#ifdef RS485_HARDWARE_SERIAL
+    serial = &Serial1;
+#else
     serial = new SoftwareSerial(_recvPin, _xmitPin);
+#endif
     init_general(serial, _enablePin, _address, _recvsize, _debug);
   }
 }
@@ -195,6 +199,10 @@ void RS485Socket::sendMsgTo(socket_addr_t address,
 
   digitalWrite(enablePin, HIGH);
   channel->sendMsg((byte *)msg, msg_len);
+#ifdef RS485_HARDWARE_SERIAL
+  // XXX: A delay is required here with hardware serial, or checking registers based on the serial device: http://www.gammon.com.au/forum/?id=11428 or possibly use a timer to disable enablePin
+  serial->flush(); // Block s until the send buffer is empty
+#endif
   digitalWrite(enablePin, LOW);
 }
 
