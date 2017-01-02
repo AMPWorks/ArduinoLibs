@@ -17,6 +17,7 @@
  */
 
 #include <Arduino.h>
+#include "Debug.h"
 #include "MPR121.h"
 #include <Wire.h>
 
@@ -35,6 +36,8 @@
 #define DEBUG_LED 13
 
 MPR121 touch;
+
+byte mode = 0;
 
 void setup() {
   Serial.begin(9600);
@@ -60,38 +63,61 @@ void setup() {
   /*
    * Set default touch and release thresholds
    */
-  for (byte i = 0; i < MPR121::MAX_SENSORS; i++) {
-    touch.setThreshold(i, 15, 2);
-  }
+  touch.setThresholds(15,2);
 
   Serial.println(F("MPR121 sensor initialized"));
 }
 
 boolean debug_on = false;
+unsigned long last_display_ms = 0;
 
 void loop() {
-  if (touch.readTouchInputs()) {
-    for (int i = 0; i < MPR121::MAX_SENSORS; i++) {
-      if (touch.changed(i)) {
+  switch (mode % 2) {
+    case 0: {
+      if (touch.readTouchInputs()) {
+        for (int i = 0; i < MPR121::MAX_SENSORS; i++) {
+          if (touch.changed(i)) {
 
-        Serial.print(F("pin "));
-        Serial.print(i);
-        Serial.print(F(":"));
-	
-        if (touch.touched(i)) {
-          Serial.println(F(" Sensed"));
-        } else {
-          Serial.print(F(" Released after "));
-          Serial.print(touch.touchTime(i));
-          Serial.println(" ms ");
+            Serial.print(F("pin "));
+            Serial.print(i);
+            Serial.print(F(":"));
+
+            if (touch.touched(i)) {
+              Serial.println(F(" Sensed"));
+            } else {
+              Serial.print(F(" Released after "));
+              Serial.print(touch.touchTime(i));
+              Serial.println(" ms ");
+            }
+          }
         }
-      }
-    }
 
-    // Flash the on-board LED when there is a change of state
-    debug_on = !debug_on;
-    if (debug_on) digitalWrite(DEBUG_LED, HIGH);
-    else digitalWrite(DEBUG_LED, HIGH);
+        // Flash the on-board LED when there is a change of state
+        debug_on = !debug_on;
+        if (debug_on) digitalWrite(DEBUG_LED, HIGH);
+        else digitalWrite(DEBUG_LED, LOW);
+      }
+      break;
+    }
+    case 1: {
+      if (millis() - last_display_ms >= 250) {
+        touch.readTouchInputs();
+        for (int i = 0; i < MPR121::MAX_SENSORS; i++) {
+          Serial.print(touch.touched(i) ? "X" : "O");
+        }
+
+        Serial.print(" - ");
+        touch.getFilteredAll();
+
+        Serial.print(" - ");
+        touch.getBaselineAll();
+
+        DEBUG_ENDLN();
+
+        last_display_ms = millis();
+      }
+      break;
+    }
   }
 
   checkSerial();
@@ -126,24 +152,16 @@ void checkSerial() {
 void print_usage() {
   Serial.print(F(
      "Usage:\n"
+     "  ? -- Help"
      "  t <sensor> <trigger> <release>' - Set the touch thresholds for a sensor\n"
      "  d <trigger> <release>' - Set the debounce values for a sensor\n"
      "  r <register>' - Read the indicated register's value\n"
      "  s <register> <value>' - Set the value of a register\n"
+     "  f - Read all filtered data\n"
+     "  F - Switch display modes\n"
        ));
 }
 
-/*
- * Available serial commands:
- * 
- * - Set touch thresholds:
- *   't <sensor> <trigger> <release>' - Set the touch thresholds for a sensor
- *   'd <trigger> <release>' - Set the debounce values for a sensor
- *   'r <register>' - Read the indicated register's value
- *   's <register> <value>' - Set the value of a register
- *
- *   example: 't 0 10 2'
- */
 #define MAX_TOKENS 8
 void handleSerial(char *command) {
   char *tokens[MAX_TOKENS];
@@ -216,13 +234,21 @@ void handleSerial(char *command) {
     case 's': {
       uint8_t reg = strtol(tokens[1], NULL, 0);
       uint8_t value = strtol(tokens[2], NULL, 0);
-      touch.set_register(ELE_CFG, 0x00);
+      touch.disable();
       touch.set_register(reg, value);
-      touch.set_register(ELE_CFG, 0x0C);
+      touch.enable();
       Serial.print(F("Set register:0x"));
       Serial.print(reg, HEX);
       Serial.print(F(" value:0x"));
       Serial.println(value, HEX);
+      break;
+    }
+    case 'f': {
+      touch.getFilteredAll();
+      break;
+    }
+    case 'F': {
+      mode++;
       break;
     }
   }

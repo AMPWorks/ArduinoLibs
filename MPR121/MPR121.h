@@ -19,9 +19,53 @@
 #ifndef MPR121_H
 #define MPR121_H
 
+#define TS1 0x00
+#define TS2 0x01
+#define OORS1 0x02
+#define OORS2 0x03
 
-// MPR121 Register Defines
-#define BASELINE 0x1E
+// filtered data
+#define E0FDL 0x04
+#define E0FDH 0x05
+#define E1FDL 0x06
+#define E1FDH 0x07
+#define E2FDL 0x08
+#define E2FDH 0x09
+#define E3FDL 0x0A
+#define E3FDH 0x0B
+#define E4FDL 0x0C
+#define E4FDH 0x0D
+#define E5FDL 0x0E
+#define E5FDH 0x0F
+#define E6FDL 0x10
+#define E6FDH 0x11
+#define E7FDL 0x12
+#define E7FDH 0x13
+#define E8FDL 0x14
+#define E8FDH 0x15
+#define E9FDL 0x16
+#define E9FDH 0x17
+#define E10FDL 0x18
+#define E10FDH 0x19
+#define E11FDL 0x1A
+#define E11FDH 0x1B
+#define E12FDL 0x1C
+#define E12FDH 0x1D
+
+// baseline values
+#define E0BV 0x1E
+#define E1BV 0x1F
+#define E2BV 0x20
+#define E3BV 0x21
+#define E4BV 0x22
+#define E5BV 0x23
+#define E6BV 0x24
+#define E7BV 0x25
+#define E8BV 0x26
+#define E9BV 0x27
+#define E10BV 0x28
+#define E11BV 0x29
+#define E12BV 0x2A
 
 #define MHD_R	0x2B
 #define NHD_R	0x2C
@@ -31,6 +75,27 @@
 #define	NHD_F	0x30
 #define	NCL_F	0x31
 #define	FDL_F	0x32
+
+// proximity electrode touch sense baseline filters
+// rising filter
+#define MHDPROXR 0x36
+#define NHDPROXR 0x37
+#define NCLPROXR 0x38
+#define FDLPROXR 0x39
+
+// falling filter
+#define MHDPROXF 0x3A
+#define NHDPROXF 0x3B
+#define NCLPROXF 0x3C
+#define FDLPROXF 0x3D
+
+// touched filter
+#define NHDPROXT 0x3E
+#define NCLPROXT 0x3F
+#define FDLPROXT 0x40
+
+
+// Electrode thresholds
 #define	ELE0_T	0x41
 #define	ELE0_R	0x42
 #define	ELE1_T	0x43
@@ -55,6 +120,9 @@
 #define	ELE10_R	0x56
 #define	ELE11_T	0x57
 #define	ELE11_R	0x58
+#define ELEPROX_T 0x59
+#define ELEPROX_R 0x5A
+
 #define DEBOUNCE 0x5B
 #define	FIL_CFG	0x5D
 #define	ELE_CFG	0x5E
@@ -81,7 +149,7 @@
 class MPR121
 {
  public:
-  static const uint8_t MAX_SENSORS = 12;
+  static const uint8_t MAX_SENSORS = 13;
 
   MPR121();
 
@@ -95,14 +163,19 @@ class MPR121
   void init(byte irqpin, boolean interrupt, byte address, boolean times, 
             boolean auto_enabled);
 
+  void enable();
+  void disable();
+
   boolean readTouchInputs();
   boolean touched(byte sensor);
   boolean previous(byte sensor);
   boolean changed(byte sensor);
   unsigned long touchTime(byte sensor);
 
-  uint16_t getBaseline(byte sensor);
+  uint8_t getBaseline(byte sensor);
   uint16_t getFiltered(byte sensor);
+  boolean getBaselineAll();
+  boolean getFilteredAll();
 
   /* Set configuration values */
   void setThreshold(byte sensor, byte trigger, byte release);
@@ -111,6 +184,7 @@ class MPR121
 
   void set_register(uint8_t r, uint8_t v);
   boolean read_register(uint8_t r, byte* result);
+  boolean read16(uint8_t r, uint16_t *result);
 
   boolean triggered; // XXX - Combine booleans into bitflags
   boolean useInterrupt; // XXX
@@ -118,6 +192,8 @@ class MPR121
   boolean initialized; // XXX
   byte address;
   byte irqpin;
+
+  byte config_mask;
 
   uint16_t touchStates;
   uint16_t prevStates;

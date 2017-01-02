@@ -3,6 +3,11 @@
  *
  * This code was initially based on the MPR121 example code provided by 
  * Sparkfun: https://github.com/sparkfun/MPR121_Capacitive_Touch_Breakout/tree/master/Firmware/MPR121Q/Arduino%20Sketch
+ * Bits have also been integrated from two other MPR121 implementations:
+ *   Adafruit: https://github.com/adafruit/Adafruit_MPR121
+ *   Bare Conductive: https://github.com/BareConductive/mpr121
+ *
+ * Datasheet: https://www.sparkfun.com/datasheets/Components/MPR121.pdf
  *
  *
  * Original MPR121.h
@@ -17,7 +22,12 @@
 #include <Arduino.h>
 #include <Wire.h>
 
-//#define DEBUG_LEVEL DEBUG_TRACE
+#ifdef DEBUG_LEVEL_MPR121
+  #define DEBUG_LEVEL DEBUG_LEVEL_MPR121
+#endif
+#ifndef DEBUG_LEVEL
+  #define DEBUG_LEVEL DEBUG_MID
+#endif
 #include <Debug.h>
 
 #include "MPR121.h"
@@ -29,10 +39,15 @@
  */
 MPR121 *cap[2] = {NULL, NULL};
 void irqTriggered0() {
+  // TODO: properly tag function with 'interrupt'
+  noInterrupts();
   if (cap[0] != NULL) cap[0]->triggered = true;
+  interrupts();
 }
 void irqTriggered1() {
+  noInterrupts();
   if (cap[1] != NULL) cap[1]->triggered = true;
+  interrupts();
 }
 
 MPR121::MPR121() {
@@ -89,7 +104,7 @@ void MPR121::init(byte _irqpin, boolean _useInterrupt, byte _address,
     }
 
     pinMode(irqpin, INPUT);
-    digitalWrite(irqpin, HIGH); //enable pullup resistor XXX: Is this needed with interrupts?
+    digitalWrite(irqpin, HIGH); //enable pullup resistor XXX: Is this needed with interrupts? TODO: Don't need if physical one present?
 
     if (useInterrupt) {
       /* Register the interrupt handler */
@@ -117,6 +132,12 @@ void MPR121::init(byte _irqpin, boolean _useInterrupt, byte _address,
       }
     }
   }
+
+  // Setup the configuration mask
+  config_mask = 0x0C | // Enable all 12 electrodes
+                0x30 | // enable proximity on all electrodes
+                0x80;  // Baseline tracking is enabled with fast-start;
+
   initialized = true;
 
   DEBUG3_VALUE("MPR121: Initialized.  IRQ=", irqpin);
@@ -125,14 +146,28 @@ void MPR121::init(byte _irqpin, boolean _useInterrupt, byte _address,
   initialize(auto_enabled);
 }
 
+/*
+ * Disable sensing
+ */
+void MPR121::disable() {
+  set_register(ELE_CFG, 0x00);
+}
+
+/*
+ * Enable sensing
+ */
+void MPR121::enable() {
+  set_register(ELE_CFG, config_mask);
+}
+
 void MPR121::initialize(boolean auto_enabled) {
 
   // Clear registers for the case where the chip is being configured again
   // without the power being reset
   set_register(0x80, 0x63);
 
-  set_register(ELE_CFG, 0x00);
-  
+  disable();
+
   // Section A - Controls filtering when data is > baseline.
   set_register(MHD_R, 0x01);
   set_register(NHD_R, 0x01);
@@ -144,55 +179,29 @@ void MPR121::initialize(boolean auto_enabled) {
   set_register(NHD_F, 0x01);
   set_register(NCL_F, 0xFF);
   set_register(FDL_F, 0x02);
-  
+
+  // Set proximity sensing defaults
+  set_register(MHDPROXR, 0xFF);
+  set_register(NHDPROXR, 0xFF);
+  set_register(NCLPROXR, 0x00);
+  set_register(FDLPROXR, 0x00);
+  set_register(MHDPROXF, 0x01);
+  set_register(NHDPROXF, 0x01);
+  set_register(NCLPROXF, 0xFF);
+  set_register(FDLPROXF, 0xFF);
+  set_register(NHDPROXT, 0x00);
+  set_register(NCLPROXT, 0x00);
+  set_register(FDLPROXT, 0x00);
+
   // Section C - Sets default touch and release thresholds for each electrode
-  set_register(ELE0_T, TOU_THRESH);
-  set_register(ELE0_R, REL_THRESH);
- 
-  set_register(ELE1_T, TOU_THRESH);
-  set_register(ELE1_R, REL_THRESH);
-  
-  set_register(ELE2_T, TOU_THRESH);
-  set_register(ELE2_R, REL_THRESH);
-  
-  set_register(ELE3_T, TOU_THRESH);
-  set_register(ELE3_R, REL_THRESH);
-  
-  set_register(ELE4_T, TOU_THRESH);
-  set_register(ELE4_R, REL_THRESH);
-  
-  set_register(ELE5_T, TOU_THRESH);
-  set_register(ELE5_R, REL_THRESH);
-  
-  set_register(ELE6_T, TOU_THRESH);
-  set_register(ELE6_R, REL_THRESH);
-  
-  set_register(ELE7_T, TOU_THRESH);
-  set_register(ELE7_R, REL_THRESH);
-  
-  set_register(ELE8_T, TOU_THRESH);
-  set_register(ELE8_R, REL_THRESH);
-  
-  set_register(ELE9_T, TOU_THRESH);
-  set_register(ELE9_R, REL_THRESH);
-  
-  set_register(ELE10_T, TOU_THRESH);
-  set_register(ELE10_R, REL_THRESH);
-  
-  set_register(ELE11_T, TOU_THRESH);
-  set_register(ELE11_R, REL_THRESH);
-  
+  setThresholds(TOU_THRESH, REL_THRESH);
+
   // Section D
   // Set the Filter Configuration
   // Set ESI2
   set_register(FIL_CFG, 0x04);
   
-  // Section E
-  // Electrode Configuration
-  // Set ELE_CFG to 0x00 to return to standby mode
-  set_register(ELE_CFG, 0x0C);  // Enables all 12 Electrodes
-  
-  
+
   // Section F
   // Enable Auto Config and auto Reconfig
   if (auto_enabled) {
@@ -202,31 +211,36 @@ void MPR121::initialize(boolean auto_enabled) {
     set_register(ATO_CFGL, 0x82);  // LSL = 0.65*USL = 0x82 @3.3V
     set_register(ATO_CFGT, 0xB5);  // Target = 0.9*USL = 0xB5 @3.3V
   }
-  
-  set_register(ELE_CFG, 0x0C);
+
+  // Enable sensing
+  enable();
 }
 
 void MPR121::setThreshold(byte sensor, byte trigger, byte release) {
   byte trig = ELE0_T + sensor * 2;
   byte rel = ELE0_R + sensor * 2;
 
-  set_register(ELE_CFG, 0x00); // ??? Disable all electrodes
+  disable(); // Must be in stop mode to write to registers
   set_register(trig, trigger);
   set_register(rel, release);
-  set_register(ELE_CFG, 0x0C); // ??? Enable all electrodes
+  enable(); // Return to previous config state
 
   DEBUG3_VALUE("Set threshold- Sensor:", sensor);
   DEBUG3_VALUE(" trigger:", trigger);
   DEBUG3_VALUELN(" release:", release);
 }
 
+/* Set threshold on all sensors */
 void MPR121::setThresholds(byte trigger, byte release) {
-  set_register(ELE_CFG, 0x00); // ??? Disable all electrodes
+  DEBUG3_VALUE("setThresholds trigger:", trigger);
+  DEBUG3_VALUELN(" release:", release);
+
+  disable(); // Must be in stop mode to write to registers
   for (byte i = 0; i < MPR121::MAX_SENSORS; i++) {
     set_register(ELE0_T + 2 * i, trigger);
     set_register(ELE1_T + 2 * i, release);
   }
-  set_register(ELE_CFG, 0x0C); // ??? Enable all electrodes
+  enable(); // Return to previous config state
 }
 
 
@@ -234,9 +248,9 @@ void MPR121::setThresholds(byte trigger, byte release) {
 void MPR121::setDebounce(byte trigger, byte release) {
   byte value = (((release & 0x7) << 4) | (trigger & 0x7));
 
-  set_register(ELE_CFG, 0x00);
+  disable(); // Must be in stop mode to write to registers
   set_register(DEBOUNCE, value);
-  set_register(ELE_CFG, 0x0C);
+  enable(); // Return to previous config state
 
   DEBUG3_VALUE("Set debouce- trigger:", trigger);
   DEBUG3_VALUELN(" release:", release);
@@ -280,7 +294,7 @@ boolean MPR121::readTouchInputs() {
   }
 
   /*
-   *  The prevStates are used to determine if values have changed since the
+   * The prevStates are used to determine if values have changed since the
    * previous call and so should be updated regardless of whether IRQ was
    * triggered.
    */
@@ -291,6 +305,11 @@ boolean MPR121::readTouchInputs() {
 
     // read the touch state from the MPR121
     Wire.requestFrom(address, (uint8_t)2);
+
+    if (Wire.available() < 2) {
+      DEBUG4_PRINTLN("No response from MPR121");
+      return false;
+    }
 
     byte LSB = Wire.read();
     byte MSB = Wire.read();
@@ -343,7 +362,7 @@ boolean MPR121::readTouchInputs() {
   }
 }
 
-uint16_t MPR121::getBaseline(byte sensor) {
+uint8_t MPR121::getBaseline(byte sensor) {
   // TODO: Add calls to fetch baseline sensor values
   return 0;
 }
@@ -367,6 +386,9 @@ void MPR121::set_register(uint8_t r, uint8_t v) {
     Wire.endTransmission();
 }
 
+/*
+ * Read a single byte value from a register
+ */
 boolean MPR121::read_register(uint8_t r, byte* result) {
   Wire.beginTransmission(address);
   Wire.write(r);
@@ -381,6 +403,75 @@ boolean MPR121::read_register(uint8_t r, byte* result) {
     return false;
   }
 }
+
+/*
+ * Read a 2-byte value from a register
+ */
+boolean MPR121::read16(uint8_t r, uint16_t *result) {
+  Wire.beginTransmission(address);
+  Wire.write(r);
+  Wire.endTransmission(false);
+
+  Wire.requestFrom(address,  (uint8_t)2, (uint8_t)true);
+
+  if (Wire.available() >= 2) {
+    result[0] = Wire.read();
+    result[1] = Wire.read();
+    return true;
+  } else {
+    return false;
+  }
+
+}
+
+/*
+ * Get the raw sensor values
+ */
+boolean MPR121::getBaselineAll() {
+  Wire.beginTransmission(address);
+  // set address register to read from the start of the baeline data
+  Wire.write(E0BV);
+  Wire.endTransmission(false); // repeated start
+
+  if (Wire.requestFrom(address, MAX_SENSORS) == MAX_SENSORS) {
+    for (int i=0; i < MAX_SENSORS; i++){ // 13 raw values
+      byte value = Wire.read();
+      DEBUG3_VALUE(" ", value);
+    }
+
+    return true;
+  } else {
+    return false;
+  }
+
+}
+
+/*
+ * Get the filtered sensor values
+ */
+boolean MPR121::getFilteredAll() {
+  unsigned char LSB, MSB;
+
+  Wire.beginTransmission(address);
+  // set address register to read from the start of the filtered data
+  Wire.write(E0FDL);
+  Wire.endTransmission(false); // repeated start
+
+  if (Wire.requestFrom((uint8_t)address,
+                       (uint8_t)(MAX_SENSORS * 2)) == MAX_SENSORS * 2) {
+    for(int i=0; i < MAX_SENSORS; i++){ // 13 filtered values
+      LSB = Wire.read();
+      MSB = Wire.read();
+      uint16_t result = ((MSB << 8) | LSB);
+      DEBUG3_VALUE(" ", result);
+    }
+
+    return true;
+  } else {
+    return false;
+  }
+}
+
 
 /******************************************************************************
  * Class to track the state history of a sensor array
