@@ -10,7 +10,7 @@
  * (See http://www.gammon.com.au/forum/?id=11428)
  *
  * TODO: With the addition of socket-level
- * CRC checks a lighter-weight protocol could be used to acheive higher line
+ * CRC checks a lighter-weight protocol could be used to achieve higher line
  * speeds.
  ******************************************************************************/
 
@@ -27,7 +27,12 @@
 // being statically defined
 #define RS485_RECV_BUFFER 64 // 140 // XXX: This is a lot of buffer space
 
-//#define RS485_HARDWARE_SERIAL
+/*
+ * By default this code uses a software serial device.  If the RS485 chip is
+ * attached to the hardware serial pins then those can be used instead by
+ * specifying the port to use with the RS485_HARDWARE_SERIAL compile flag.
+ */
+//#define RS485_HARDWARE_SERIAL Serial1
 #ifdef RS485_HARDWARE_SERIAL
 #define SERIAL_TYPE HardwareSerial
 #else

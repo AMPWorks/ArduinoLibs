@@ -10,7 +10,7 @@
  * (See http://www.gammon.com.au/forum/?id=11428)
  *
  * TODO: With the addition of socket-level
- * CRC checks a lighter-weight protocol could be used to acheive higher line
+ * CRC checks a lighter-weight protocol could be used to achieve higher line
  * speeds.
  ******************************************************************************/
 
@@ -72,7 +72,7 @@ void RS485Socket::init(byte _recvPin, byte _xmitPin, byte _enablePin,
     // XXX - Could re-init the config?
   } else {
 #ifdef RS485_HARDWARE_SERIAL
-    serial = &Serial1;
+    serial = &RS485_HARDWARE_SERIAL;
 #else
     serial = new SoftwareSerial(_recvPin, _xmitPin);
 #endif
@@ -243,7 +243,9 @@ const byte *RS485Socket::getMsg(socket_addr_t address, unsigned int *retlen)
     }
   }
 
+#if DEBUG_LEVEL >= DEBUG_TRACE
  ERROR_OUT:
+#endif
 
   *retlen = 0;
   return NULL;
