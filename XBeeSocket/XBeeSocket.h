@@ -10,7 +10,7 @@
 #define XBEESOCKET_H
 
 #include "Arduino.h"
-#include "Xbee.h"
+#include "XBee.h"
 #include "Socket.h"
 
 typedef struct {
