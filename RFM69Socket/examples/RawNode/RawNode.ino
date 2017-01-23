@@ -1,20 +1,18 @@
-// Sample RFM69 sender/node sketch, with ACK and optional encryption, and Automatic Transmission Control
-// Sends periodic messages of increasing length to gateway (id=1)
-// It also looks for an onboard FLASH chip, if present
-// RFM69 library and sample code by Felix Rusu - http://LowPowerLab.com/contact
-// Copyright Felix Rusu (2015)
+/*
+ * This is based on the Node examples sketch from the RFM69 library:
+ *    https://github.com/LowPowerLab/RFM69/tree/master/Examples/Node
+ */
 
-#include <RFM69.h>    //get it here: https://www.github.com/lowpowerlab/rfm69
-#include <RFM69_ATC.h>//get it here: https://www.github.com/lowpowerlab/rfm69
+#include <RFM69.h>
+#include <RFM69_ATC.h>
 #include <SPI.h>
-#include <SPIFlash.h> //get it here: https://www.github.com/lowpowerlab/spiflash
+#include <SerialCLI.h>
 
 //*********************************************************************************************
 //************ IMPORTANT SETTINGS - YOU MUST CHANGE/CONFIGURE TO FIT YOUR HARDWARE *************
 //*********************************************************************************************
 #define NODEID        2    //must be unique for each node on same network (range up to 254, 255 is used for broadcast)
 #define NETWORKID     100  //the same on all nodes that talk to each other (range up to 255)
-#define GATEWAYID     1
 //Match frequency to the hardware version of the radio on your Moteino (uncomment one):
 //#define FREQUENCY   RF69_433MHZ
 //#define FREQUENCY   RF69_868MHZ
@@ -22,24 +20,13 @@
 #define ENCRYPTKEY    "sampleEncryptKey" //exactly the same 16 characters/bytes on all nodes!
 #define IS_RFM69HW    //uncomment only for RFM69HW! Leave out if you have RFM69W!
 #define ENABLE_ATC    //comment out this line to disable AUTO TRANSMISSION CONTROL
+#define GATEWAYID     1 // NODEID of the Gateway
 //*********************************************************************************************
-
-#ifdef __AVR_ATmega1284P__
-  #define LED           13 // Moteino MEGAs have LEDs on D15
-  #define FLASH_SS      23 // and FLASH SS on D23
-#else
-#define LED           9 // Moteinos have LEDs on D9
-#define FLASH_SS      8 // and FLASH SS on D8
-#endif
 
 #define SERIAL_BAUD   115200
 
-int TRANSMITPERIOD = 150; //transmit a packet to gateway so often (in ms)
-char payload[] = "123 ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-char buff[20];
-byte sendSize=1;
-boolean requestACK = false;
-//SPIFlash flash(FLASH_SS, 0xEF30); //EF30 for 4mbit  Windbond chip (W25X40CL)
+#define LED_SEND    12
+#define LED_RECEIVE 13
 
 #ifdef ENABLE_ATC
 RFM69_ATC radio;
@@ -47,17 +34,56 @@ RFM69_ATC radio;
 RFM69 radio;
 #endif
 
+//set to 'true' to sniff all packets on the same network
+bool promiscuousMode = false;
+
+void clihandler(char **tokens, byte numtokens);
+SerialCLI serialcli(
+        32,     // Max command length, this amount is allocated as a buffer
+        clihandler // Function for handling tokenized commands
+);
+
+
+int transmit_period = 250; //transmit a packet to gateway so often (in ms)
+char payload[] = "123 ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+char buff[20];
+byte sendSize=1;
+
+
 void setup() {
   Serial.begin(SERIAL_BAUD);
 
-  delay(5000);
-  Serial.println("*** STARTING UP ***");
+  Serial.println("*** RFM69 Gateway starting up ***");
+  delay(2000);
 
-  radio.initialize(FREQUENCY,NODEID,NETWORKID);
-#ifdef IS_RFM69HW
-  radio.setHighPower(); //uncomment only for RFM69HW!
+#if FREQUENCY==RF69_433MHZ
+  Serial.println("* Frequency: 433");
 #endif
+#if FREQUENCY==RF69_868MHZ
+  Serial.println("* Frequency: 868");
+#endif
+#if FREQUENCY==RF69_915MHZ
+  Serial.println("* Frequency: 915");
+#endif
+
+  Serial.print("* NodeID:");
+  Serial.print(NODEID);
+  Serial.print(" NetworkID:");
+  Serial.println(NETWORKID);
+  radio.initialize(FREQUENCY, NODEID, NETWORKID);
+
+#ifdef IS_RFM69HW
+  Serial.println("*** High power mode enabled");
+  radio.setHighPower(); //only for RFM69HW!
+#endif
+
+#ifdef ENABLE_ATC
+  Serial.println("*** RFM69_ATC Enabled (Auto Transmission Control)");
+#endif
+
   radio.encrypt(ENCRYPTKEY);
+  radio.promiscuous(promiscuousMode);
+
   //radio.setFrequency(919000000); //set frequency to some custom frequency
 
 //Auto Transmission Control - dials down transmit power to save battery (-100 is the noise floor, -90 is still pretty good)
@@ -67,39 +93,13 @@ void setup() {
 #ifdef ENABLE_ATC
   radio.enableAutoPower(-70);
 #endif
-
-  char buff[50];
-  sprintf(buff, "\nTransmitting at %d Mhz...", FREQUENCY==RF69_433MHZ ? 433 : FREQUENCY==RF69_868MHZ ? 868 : 915);
-  Serial.println(buff);
-
-#ifdef ENABLE_ATC
-  Serial.println("RFM69_ATC Enabled (Auto Transmission Control)\n");
-#endif
 }
+
+unsigned long last_sent_ms = 0;
 
 long lastPeriod = 0;
 void loop() {
-
-  //process any serial input
-  if (Serial.available() > 0)
-  {
-    char input = Serial.read();
-    if (input >= 48 && input <= 57) //[0,9]
-    {
-      TRANSMITPERIOD = 100 * (input-48);
-      if (TRANSMITPERIOD == 0) TRANSMITPERIOD = 1000;
-      Serial.print("\nChanging delay to ");
-      Serial.print(TRANSMITPERIOD);
-      Serial.println("ms\n");
-    }
-
-    if (input == 'r') //d=dump register values
-      radio.readAllRegs();
-    //if (input == 'E') //E=enable encryption
-    //  radio.encrypt(KEY);
-    //if (input == 'e') //e=disable encryption
-    //  radio.encrypt(null);
-  }
+  serialcli.checkSerial();
 
   //check for any received packets
   if (radio.receiveDone())
@@ -115,27 +115,25 @@ void loop() {
       Serial.print(" - ACK sent");
     }
     Serial.println();
+    Blink(LED_RECEIVE, 3);
   }
 
-  int currPeriod = millis()/TRANSMITPERIOD;
-  if (currPeriod != lastPeriod)
-  {
-    lastPeriod=currPeriod;
+  if (millis() - last_sent_ms >= transmit_period) {
+    last_sent_ms = millis();
 
-    {
-      Serial.print("Sending[");
-      Serial.print(sendSize);
-      Serial.print("]: ");
-      for(byte i = 0; i < sendSize; i++)
-        Serial.print((char)payload[i]);
+    Serial.print("Sending[");
+    Serial.print(sendSize);
+    Serial.print("]: ");
+    for(byte i = 0; i < sendSize; i++)
+      Serial.print((char)payload[i]);
 
-      if (radio.sendWithRetry(GATEWAYID, payload, sendSize))
-        Serial.print(" ok!");
-      else Serial.print(" nothing...");
-    }
+    if (radio.sendWithRetry(GATEWAYID, payload, sendSize))
+      Serial.print(" ok!");
+    else Serial.print(" nothing...");
+
     sendSize = (sendSize + 1) % 31;
     Serial.println();
-    Blink(LED, 3);
+    Blink(LED_SEND, 3);
   }
 }
 
@@ -145,4 +143,90 @@ void Blink(byte PIN, int DELAY_MS)
   digitalWrite(PIN,HIGH);
   delay(DELAY_MS);
   digitalWrite(PIN,LOW);
+}
+
+void print_usage() {
+  Serial.print(F(
+" \n"
+"Usage:\n"
+"  h - print this help\n"
+"  r - read radio registers\n"
+"  E - Enable encryption\n"
+"  e - Disable encryption\n"
+"  p - Toggle promiscuous mode\n"
+"  t - Read temperature\n"
+"  d <num> - Set transmit period\n"
+"  a <addr> - Set this node's address\n"
+               ));
+}
+void clihandler(char **tokens, byte numtokens) {
+  switch (tokens[0][0]) {
+
+    case 'h': {
+      print_usage();
+      break;
+    }
+
+    case 'r': {
+      radio.readAllRegs();
+      break;
+    }
+
+    case 'E': {
+      Serial.println("Enabling encryption");
+      radio.encrypt(ENCRYPTKEY);
+      break;
+    }
+
+    case 'e': {
+      Serial.println("Disabling encryption");
+      radio.encrypt(null);
+      break;
+    }
+
+    case 'p': {
+      promiscuousMode = !promiscuousMode;
+      radio.promiscuous(promiscuousMode);
+      Serial.print("Promiscuous mode ");
+      Serial.println(promiscuousMode ? "on" : "off");
+      break;
+    }
+
+    case 't': {
+      byte temperature = radio.readTemperature(-1); // -1 = user cal factor, adjust for correct ambient
+      int fTemp = 1.8 * temperature + 32; // 9/5=1.8
+      Serial.print("Radio Temp is ");
+      Serial.print(temperature);
+      Serial.print("C, ");
+      Serial.print(fTemp); //converting to F loses some resolution, obvious when C is on edge between 2 values (ie 26C=78F, 27C=80F)
+      Serial.println('F');
+      break;
+    }
+
+    case 'd': {
+      if (numtokens < 2) return;
+      uint16_t value = atoi(tokens[1]);
+      Serial.print("* Setting transmit period:");
+      Serial.println(value);
+      if ((value < 10) || (value > 10000)) {
+        Serial.println("INVALID VALUE");
+        return;
+      }
+      transmit_period = value;
+      break;
+    }
+
+    case 'a': {
+      if (numtokens < 2) return;
+      uint16_t value = atoi(tokens[1]);
+      Serial.print("* Setting address:");
+      Serial.println(value);
+      if (value > 254) {
+        Serial.println("INVALID VALUE");
+        return;
+      }
+      radio.setAddress(value);
+      break;
+    }
+  }
 }

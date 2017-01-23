@@ -1,13 +1,12 @@
-// Sample RFM69 receiver/gateway sketch, with ACK and optional encryption, and Automatic Transmission Control
-// Passes through any wireless received messages to the serial port & responds to ACKs
-// It also looks for an onboard FLASH chip, if present
-// RFM69 library and sample code by Felix Rusu - http://LowPowerLab.com/contact
-// Copyright Felix Rusu (2015)
+/*
+ * This is based on the Gateway examples sketch from the RFM69 library:
+ *    https://github.com/LowPowerLab/RFM69/tree/master/Examples/Gateway
+ */
 
-#include <RFM69.h>    //get it here: https://www.github.com/lowpowerlab/rfm69
-#include <RFM69_ATC.h>//get it here: https://www.github.com/lowpowerlab/rfm69
-#include <SPI.h>      //comes with Arduino IDE (www.arduino.cc)
-#include <SPIFlash.h> //get it here: https://www.github.com/lowpowerlab/spiflash
+#include <RFM69.h>
+#include <RFM69_ATC.h>
+#include <SPI.h>
+#include <SerialCLI.h>
 
 //*********************************************************************************************
 //************ IMPORTANT SETTINGS - YOU MUST CHANGE/CONFIGURE TO FIT YOUR HARDWARE *************
@@ -25,13 +24,8 @@
 
 #define SERIAL_BAUD   115200
 
-#ifdef __AVR_ATmega1284P__
-#define LED           13 // Moteino MEGAs have LEDs on D15
-  #define FLASH_SS      23 // and FLASH SS on D23
-#else
-#define LED           9 // Moteinos have LEDs on D9
-#define FLASH_SS      8 // and FLASH SS on D8
-#endif
+#define LED_SEND    12
+#define LED_RECEIVE 13
 
 #ifdef ENABLE_ATC
 RFM69_ATC radio;
@@ -39,105 +33,56 @@ RFM69_ATC radio;
 RFM69 radio;
 #endif
 
-SPIFlash flash(FLASH_SS, 0xEF30); //EF30 for 4mbit  Windbond chip (W25X40CL)
-bool promiscuousMode = false; //set to 'true' to sniff all packets on the same network
+//set to 'true' to sniff all packets on the same network
+bool promiscuousMode = false;
+
+void clihandler(char **tokens, byte numtokens);
+SerialCLI serialcli(
+        32,     // Max command length, this amount is allocated as a buffer
+        clihandler // Function for handling tokenized commands
+);
 
 void setup() {
   Serial.begin(SERIAL_BAUD);
-  delay(5000);
-  radio.initialize(FREQUENCY,NODEID,NETWORKID);
+
+  Serial.println("*** RFM69 Gateway starting up ***");
+  delay(2000);
+
+#if FREQUENCY==RF69_433MHZ
+  Serial.println("* Frequency: 433");
+#endif
+#if FREQUENCY==RF69_868MHZ
+  Serial.println("* Frequency: 868");
+#endif
+#if FREQUENCY==RF69_915MHZ
+  Serial.println("* Frequency: 915");
+#endif
+
+  Serial.print("* NodeID:");
+  Serial.print(NODEID);
+  Serial.print(" NetworkID:");
+  Serial.println(NETWORKID);
+  radio.initialize(FREQUENCY, NODEID, NETWORKID);
+
 #ifdef IS_RFM69HW
+  Serial.println("*** High power mode enabled");
   radio.setHighPower(); //only for RFM69HW!
 #endif
-  radio.encrypt(ENCRYPTKEY);
-  radio.promiscuous(promiscuousMode);
-  //radio.setFrequency(919000000); //set frequency to some custom frequency
-  char buff[50];
-  sprintf(buff, "\nListening at %d Mhz...", FREQUENCY==RF69_433MHZ ? 433 : FREQUENCY==RF69_868MHZ ? 868 : 915);
-  Serial.println(buff);
-  if (flash.initialize())
-  {
-    Serial.print("SPI Flash Init OK. Unique MAC = [");
-    flash.readUniqueId();
-    for (byte i=0;i<8;i++)
-    {
-      Serial.print(flash.UNIQUEID[i], HEX);
-      if (i!=8) Serial.print(':');
-    }
-    Serial.println(']');
-
-    //alternative way to read it:
-    //byte* MAC = flash.readUniqueId();
-    //for (byte i=0;i<8;i++)
-    //{
-    //  Serial.print(MAC[i], HEX);
-    //  Serial.print(' ');
-    //}
-  }
-  else
-    Serial.println("SPI Flash MEM not found (is chip soldered?)...");
 
 #ifdef ENABLE_ATC
-  Serial.println("RFM69_ATC Enabled (Auto Transmission Control)");
+  Serial.println("*** RFM69_ATC Enabled (Auto Transmission Control)");
 #endif
+
+  radio.encrypt(ENCRYPTKEY);
+  radio.promiscuous(promiscuousMode);
+
+  //radio.setFrequency(919000000); //set frequency to some custom frequency
 }
 
 byte ackCount=0;
 uint32_t packetCount = 0;
 void loop() {
-  //process any serial input
-  if (Serial.available() > 0)
-  {
-    char input = Serial.read();
-    if (input == 'r') //d=dump all register values
-      radio.readAllRegs();
-    if (input == 'E') //E=enable encryption
-      radio.encrypt(ENCRYPTKEY);
-    if (input == 'e') //e=disable encryption
-      radio.encrypt(null);
-    if (input == 'p')
-    {
-      promiscuousMode = !promiscuousMode;
-      radio.promiscuous(promiscuousMode);
-      Serial.print("Promiscuous mode ");Serial.println(promiscuousMode ? "on" : "off");
-    }
-
-    if (input == 'd') //d=dump flash area
-    {
-      Serial.println("Flash content:");
-      int counter = 0;
-
-      while(counter<=256){
-        Serial.print(flash.readByte(counter++), HEX);
-        Serial.print('.');
-      }
-      while(flash.busy());
-      Serial.println();
-    }
-    if (input == 'D')
-    {
-      Serial.print("Deleting Flash chip ... ");
-      flash.chipErase();
-      while(flash.busy());
-      Serial.println("DONE");
-    }
-    if (input == 'i')
-    {
-      Serial.print("DeviceID: ");
-      word jedecid = flash.readDeviceId();
-      Serial.println(jedecid, HEX);
-    }
-    if (input == 't')
-    {
-      byte temperature =  radio.readTemperature(-1); // -1 = user cal factor, adjust for correct ambient
-      byte fTemp = 1.8 * temperature + 32; // 9/5=1.8
-      Serial.print( "Radio Temp is ");
-      Serial.print(temperature);
-      Serial.print("C, ");
-      Serial.print(fTemp); //converting to F loses some resolution, obvious when C is on edge between 2 values (ie 26C=78F, 27C=80F)
-      Serial.println('F');
-    }
-  }
+  serialcli.checkSerial();
 
   if (radio.receiveDone())
   {
@@ -167,6 +112,7 @@ void loop() {
         Serial.print(" Pinging node ");
         Serial.print(theNodeID);
         Serial.print(" - ACK...");
+        Blink(LED_SEND, 3);
         delay(3); //need this when sending right after reception .. ?
         if (radio.sendWithRetry(theNodeID, "ACK TEST", 8, 0))  // 0 = only 1 attempt, no retries
           Serial.print("ok!");
@@ -174,7 +120,7 @@ void loop() {
       }
     }
     Serial.println();
-    Blink(LED,3);
+    Blink(LED_RECEIVE, 3);
   }
 }
 
@@ -184,4 +130,62 @@ void Blink(byte PIN, int DELAY_MS)
   digitalWrite(PIN,HIGH);
   delay(DELAY_MS);
   digitalWrite(PIN,LOW);
+}
+
+void print_usage() {
+  Serial.print(F(
+" \n"
+"Usage:\n"
+"  h - print this help\n"
+"  r - read radio registers\n"
+"  E - Enable encryption\n"
+"  e - Disable encryption\n"
+"  p - Toggle promiscuous mode\n"
+"  t - Read temperature\n"
+  ));
+}
+void clihandler(char **tokens, byte numtokens) {
+  switch (tokens[0][0]) {
+
+    case 'h': {
+      print_usage();
+      break;
+    }
+
+    case 'r': {
+      radio.readAllRegs();
+      break;
+    }
+
+    case 'E': {
+      Serial.println("Enabling encryption");
+      radio.encrypt(ENCRYPTKEY);
+      break;
+    }
+
+    case 'e': {
+      Serial.println("Disabling encryption");
+      radio.encrypt(null);
+      break;
+    }
+
+    case 'p': {
+      promiscuousMode = !promiscuousMode;
+      radio.promiscuous(promiscuousMode);
+      Serial.print("Promiscuous mode ");
+      Serial.println(promiscuousMode ? "on" : "off");
+      break;
+    }
+
+    case 't': {
+      byte temperature = radio.readTemperature(-1); // -1 = user cal factor, adjust for correct ambient
+      int fTemp = 1.8 * temperature + 32; // 9/5=1.8
+      Serial.print("Radio Temp is ");
+      Serial.print(temperature);
+      Serial.print("C, ");
+      Serial.print(fTemp); //converting to F loses some resolution, obvious when C is on edge between 2 values (ie 26C=78F, 27C=80F)
+      Serial.println('F');
+      break;
+    }
+  }
 }
