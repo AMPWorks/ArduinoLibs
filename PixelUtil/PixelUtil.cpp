@@ -76,15 +76,18 @@ void PixelUtil::init(const uint16_t _numPixels, const uint8_t dataPin, const uin
       FastLED.addLeds<WS2801, 19, 20, RGB>(leds, num_pixels);
     } else
 #endif
-#ifdef PIXELS_APA102_8_12
-    if ((dataPin == 8) && (clockPin == 12)) {
-      FastLED.addLeds<APA102, 8, 12, RGB>(leds, num_pixels);
+#ifdef PIXELS_APA102_12_8
+    if ((dataPin == 12) && (clockPin == 8)) {
+      FastLED.addLeds<APA102, 8, 12, BGR>(leds, num_pixels);
     } else
 #endif
 #ifdef PIXELS_APA102_9_10
     if ((dataPin == 9) && (clockPin == 10)) {
-      FastLED.addLeds<APA102, 9, 10, RGB>(leds, num_pixels);
+      FastLED.addLeds<APA102, 9, 10, BGR>(leds, num_pixels);
     } else
+#endif
+#ifdef PIXELS_APA102_20_21
+    FastLED.addLeds<APA102, 20, 21, BGR>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
 #endif
 #if !defined(PIXELS_WS2812B_3) && !defined(PIXELS_WS2801_5_7) && !defined(PIXELS_WS2801_19_20)
     // Default pin configuration and LEDs
