@@ -46,7 +46,7 @@ void setup() {
   Serial.begin(SERIAL_BAUD);
 
   Serial.println("*** RFM69 Gateway starting up ***");
-  delay(2000);
+  delay(1000);
 
 #if FREQUENCY==RF69_433MHZ
   Serial.println("* Frequency: 433");

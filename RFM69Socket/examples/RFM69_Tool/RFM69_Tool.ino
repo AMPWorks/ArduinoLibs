@@ -1,6 +1,6 @@
 /*
- * This is based on the Node examples sketch from the RFM69 library:
- *    https://github.com/LowPowerLab/RFM69/tree/master/Examples/Node
+ * This tool sends intermitten heartbeats as well as tracking heartbeat messages
+ * from other nodes.
  */
 
 #include <RFM69.h>
@@ -8,11 +8,16 @@
 #include <SPI.h>
 #include <SerialCLI.h>
 
-//*********************************************************************************************
-//************ IMPORTANT SETTINGS - YOU MUST CHANGE/CONFIGURE TO FIT YOUR HARDWARE *************
-//*********************************************************************************************
-#define NODEID        2    //must be unique for each node on same network (range up to 254, 255 is used for broadcast)
-#define NETWORKID     100  //the same on all nodes that talk to each other (range up to 255)
+#include <Debug.h>
+
+#ifndef NODEID
+#define NODEID        1
+#endif
+
+#ifndef NETWORKID
+#define NETWORKID     100
+#endif
+
 //Match frequency to the hardware version of the radio on your Moteino (uncomment one):
 //#define FREQUENCY   RF69_433MHZ
 //#define FREQUENCY   RF69_868MHZ
@@ -43,17 +48,21 @@ SerialCLI serialcli(
         clihandler // Function for handling tokenized commands
 );
 
+#define HEARTBEAT_MAGIC 0xefbeadde
+typedef struct {
+  uint32_t magic;
+  uint32_t sequence;
+  byte payload[32 - sizeof (char)*4 + sizeof (uint32_t)];
+} heartbeat_msg_t;
 
-int transmit_period_ms = 250; //transmit a packet to gateway so often (in ms)
-char payload[] = "123 ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-char buff[20];
-byte sendSize=1;
+heartbeat_msg_t heartbeat;
 
+unsigned int heartbeat_period_ms = 1000;  // Period between heartbeats
 
 void setup() {
   Serial.begin(SERIAL_BAUD);
 
-  Serial.println("*** RFM69 Gateway starting up ***");
+  Serial.println("*** RFM69 Tool starting up ***");
   delay(1000);
 
 #if FREQUENCY==RF69_433MHZ
@@ -84,55 +93,61 @@ void setup() {
   radio.encrypt(ENCRYPTKEY);
   radio.promiscuous(promiscuousMode);
 
-  //radio.setFrequency(919000000); //set frequency to some custom frequency
-
-//Auto Transmission Control - dials down transmit power to save battery (-100 is the noise floor, -90 is still pretty good)
-//For indoor nodes that are pretty static and at pretty stable temperatures (like a MotionMote) -90dBm is quite safe
-//For more variable nodes that can expect to move or experience larger temp drifts a lower margin like -70 to -80 would probably be better
-//Always test your ATC mote in the edge cases in your own environment to ensure ATC will perform as you expect
 #ifdef ENABLE_ATC
   radio.enableAutoPower(-70);
 #endif
+
+  DEBUG1_PRINTLN("*** RFM69 Tool Initialized ***")
 }
 
-unsigned long last_sent_ms = 0;
+unsigned long last_heartbeat_ms = 0;
 
-long lastPeriod = 0;
 void loop() {
   serialcli.checkSerial();
 
-  //check for any received packets
+  // Check for any received data
   if (radio.receiveDone())
   {
-    Serial.print('[');Serial.print(radio.SENDERID, DEC);Serial.print("] ");
-    for (byte i = 0; i < radio.DATALEN; i++)
-      Serial.print((char)radio.DATA[i]);
-    Serial.print("   [RX_RSSI:");Serial.print(radio.RSSI);Serial.print("]");
+    DEBUG1_VALUE("Received from:", radio.SENDERID);
+    DEBUG1_VALUE(" to:", radio.TARGETID);
+    DEBUG1_VALUE(" size:", radio.DATALEN);
+    DEBUG1_VALUE(" rssi:", radio.RSSI);
 
-    if (radio.ACKRequested())
-    {
-      radio.sendACK();
-      Serial.print(" - ACK sent");
+    // Check if the received data is a heartbeat message
+    heartbeat_msg_t *msg = (heartbeat_msg_t *) radio.DATA;
+    if ((radio.DATALEN == sizeof (heartbeat_msg_t)) &&
+            (msg->magic == HEARTBEAT_MAGIC)) {
+      DEBUG1_VALUE(" HB:", msg->sequence);
+    } else {
+      DEBUG1_PRINT(" Not HB");
     }
-    Serial.println();
+
+    for (byte i = 0; i < radio.DATALEN; i++) {
+      DEBUG1_HEXVAL(" ", (byte)radio.DATA[i]);
+    }
+
+    DEBUG_ENDLN();
+
     Blink(LED_RECEIVE, 3);
   }
 
-  if (millis() - last_sent_ms >= transmit_period_ms) {
-    last_sent_ms = millis();
+  // Send a new heartbeat message if the period has elapsed
+  if (millis() - last_heartbeat_ms >= heartbeat_period_ms) {
+    static uint32_t heartbeat_sequence = 0;
 
-    Serial.print("Sending[");
-    Serial.print(sendSize);
-    Serial.print("]: ");
-    for(byte i = 0; i < sendSize; i++)
-      Serial.print((char)payload[i]);
+    last_heartbeat_ms = millis();
 
-    if (radio.sendWithRetry(GATEWAYID, payload, sendSize))
-      Serial.print(" ok!");
-    else Serial.print(" nothing...");
+    heartbeat.magic = HEARTBEAT_MAGIC;
+    heartbeat.sequence = heartbeat_sequence++;
 
-    sendSize = (sendSize + 1) % 31;
-    Serial.println();
+    DEBUG1_VALUE("Heartbeat size:", sizeof(heartbeat_msg_t));
+    DEBUG1_VALUE(" seq:", heartbeat.sequence);
+    DEBUG1_PRINT(" data: ");
+    for (byte i = 0; i < sizeof(heartbeat_msg_t); i++)
+            DEBUG1_HEXVAL(" ", ((byte *)&heartbeat)[i]);
+
+    unsigned long start_us = micros();
+    radio.send(RF69_BROADCAST_ADDR, &heartbeat, sizeof(heartbeat_msg_t));
     Blink(LED_SEND, 3);
   }
 }
@@ -147,17 +162,18 @@ void Blink(byte PIN, int DELAY_MS)
 
 void print_usage() {
   Serial.print(F(
-" \n"
-"Usage:\n"
-"  h - print this help\n"
-"  r - read radio registers\n"
-"  E - Enable encryption\n"
-"  e - Disable encryption\n"
-"  p - Toggle promiscuous mode\n"
-"  t - Read temperature\n"
-"  d <num> - Set transmit period\n"
-"  a <addr> - Set this node's address\n"
-               ));
+         "\n"
+         "Usage:\n"
+         "  h - print this help\n"
+         "  r - read radio registers\n"
+         "  E - Enable encryption\n"
+         "  e - Disable encryption\n"
+         "  p - Toggle promiscuous mode\n"
+         "  t - Read temperature\n"
+         "  d <num> - Set transmit period\n"
+         "  a <addr> - Set this node's address\n"
+         "  P <power> - Set the auto power\n"
+ ));
 }
 void clihandler(char **tokens, byte numtokens) {
   switch (tokens[0][0]) {
@@ -206,13 +222,13 @@ void clihandler(char **tokens, byte numtokens) {
     case 'd': {
       if (numtokens < 2) return;
       uint16_t value = atoi(tokens[1]);
-      Serial.print("* Setting transmit period:");
+      Serial.print("* Setting heartbeat period:");
       Serial.println(value);
       if ((value < 10) || (value > 10000)) {
         Serial.println("INVALID VALUE");
         return;
       }
-      transmit_period_ms = value;
+      heartbeat_period_ms = value;
       break;
     }
 
@@ -226,6 +242,16 @@ void clihandler(char **tokens, byte numtokens) {
         return;
       }
       radio.setAddress(value);
+      break;
+    }
+
+    case 'P': {
+#ifdef ENABLE_ATC
+      if (numtokens < 2) return;
+      int value = atoi(tokens[1]);
+      DEBUG1_VALUELN("* Setting auto power:", value)
+      radio.enableAutoPower(value);
+#endif
       break;
     }
   }
