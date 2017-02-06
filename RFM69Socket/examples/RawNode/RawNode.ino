@@ -53,7 +53,7 @@ byte sendSize=1;
 void setup() {
   Serial.begin(SERIAL_BAUD);
 
-  Serial.println("*** RFM69 Gateway starting up ***");
+  Serial.println("*** RFM69 Node starting up ***");
   delay(1000);
 
 #if FREQUENCY==RF69_433MHZ

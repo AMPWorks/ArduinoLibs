@@ -1,5 +1,5 @@
 /*
- * This tool sends intermitten heartbeats as well as tracking heartbeat messages
+ * This tool sends intermittent heartbeats as well as tracking heartbeat messages
  * from other nodes.
  */
 
@@ -8,8 +8,12 @@
 #include <SPI.h>
 #include <SerialCLI.h>
 
+#define DEBUG_LEVEL DEBUG_TRACE
 #include <Debug.h>
 
+/*******************************************************************************
+ * Configurable settings, set here or via compiler flags
+ */
 #ifndef NODEID
 #define NODEID        1
 #endif
@@ -18,15 +22,22 @@
 #define NETWORKID     100
 #endif
 
-//Match frequency to the hardware version of the radio on your Moteino (uncomment one):
-//#define FREQUENCY   RF69_433MHZ
-//#define FREQUENCY   RF69_868MHZ
-#define FREQUENCY     RF69_915MHZ
-#define ENCRYPTKEY    "sampleEncryptKey" //exactly the same 16 characters/bytes on all nodes!
+#ifndef IS_RFM69HW
 #define IS_RFM69HW    //uncomment only for RFM69HW! Leave out if you have RFM69W!
+#endif
+
+#ifndef FREQUENCY
+#define FREQUENCY     RF69_915MHZ // RF69_433MHZ,RF69_868MHZ,RF69_915MHZ
+#endif
+
+#ifndef ENCRYPTKEY
+#define ENCRYPTKEY    "sampleEncryptKey" //exactly the same 16 characters/bytes on all nodes!
+#endif
+
+#ifndef ENABLE_ATC
 #define ENABLE_ATC    //comment out this line to disable AUTO TRANSMISSION CONTROL
-#define GATEWAYID     1 // NODEID of the Gateway
-//*********************************************************************************************
+#endif
+/******************************************************************************/
 
 #define SERIAL_BAUD   115200
 
@@ -44,20 +55,23 @@ bool promiscuousMode = false;
 
 void clihandler(char **tokens, byte numtokens);
 SerialCLI serialcli(
-        32,     // Max command length, this amount is allocated as a buffer
-        clihandler // Function for handling tokenized commands
+  32,     // Max command length, this amount is allocated as a buffer
+  clihandler // Function for handling tokenized commands
 );
 
+/*
+ * Heartbeat structure
+ */
 #define HEARTBEAT_MAGIC 0xefbeadde
 typedef struct {
   uint32_t magic;
   uint32_t sequence;
   byte payload[32 - sizeof (char)*4 + sizeof (uint32_t)];
 } heartbeat_msg_t;
-
 heartbeat_msg_t heartbeat;
+unsigned int heartbeat_period_ms = 2000;  // Period between heartbeats
 
-unsigned int heartbeat_period_ms = 1000;  // Period between heartbeats
+void initialize_trackers();
 
 void setup() {
   Serial.begin(SERIAL_BAUD);
@@ -97,6 +111,8 @@ void setup() {
   radio.enableAutoPower(-70);
 #endif
 
+  initialize_trackers();
+
   DEBUG1_PRINTLN("*** RFM69 Tool Initialized ***")
 }
 
@@ -115,9 +131,11 @@ void loop() {
 
     // Check if the received data is a heartbeat message
     heartbeat_msg_t *msg = (heartbeat_msg_t *) radio.DATA;
+    boolean is_heartbeat = false;
     if ((radio.DATALEN == sizeof (heartbeat_msg_t)) &&
             (msg->magic == HEARTBEAT_MAGIC)) {
       DEBUG1_VALUE(" HB:", msg->sequence);
+      is_heartbeat = true;
     } else {
       DEBUG1_PRINT(" Not HB");
     }
@@ -127,6 +145,10 @@ void loop() {
     }
 
     DEBUG_ENDLN();
+
+    if (is_heartbeat) {
+      track_heartbeat(radio.SENDERID, msg->sequence);
+    }
 
     Blink(LED_RECEIVE, 3);
   }
@@ -146,7 +168,6 @@ void loop() {
     for (byte i = 0; i < sizeof(heartbeat_msg_t); i++)
             DEBUG1_HEXVAL(" ", ((byte *)&heartbeat)[i]);
 
-    unsigned long start_us = micros();
     radio.send(RF69_BROADCAST_ADDR, &heartbeat, sizeof(heartbeat_msg_t));
     Blink(LED_SEND, 3);
   }
@@ -160,6 +181,105 @@ void Blink(byte PIN, int DELAY_MS)
   digitalWrite(PIN,LOW);
 }
 
+/*******************************************************************************
+ * Heartbeat tracking
+ */
+
+#define NUM_RECORDS 20
+#define NO_ADDRESS (uint16_t)-1
+typedef struct {
+  uint16_t address;
+  uint16_t last_sequence;
+  uint32_t last_heartbeat_ms;
+  uint16_t count;
+  uint16_t misses;
+} heartbeat_record_t;
+heartbeat_record_t records[NUM_RECORDS];
+void track_heartbeat(uint16_t address, uint16_t sequence);
+
+/* Initialize the tracking array */
+void initialize_trackers() {
+  for (byte i = 0; i < NUM_RECORDS; i++) {
+    records[i].address = NO_ADDRESS;
+  }
+}
+
+/*
+ * Lookup an address in the trackere
+ */
+heartbeat_record_t *lookup_record(uint16_t address) {
+  for (byte i = 0; i < NUM_RECORDS; i++) {
+    if (records[i].address == address) {
+      return &records[i];
+    }
+  }
+
+  return null;
+}
+
+/*
+ * Add a new node record, either in an unused slot or the oldest allocated slot
+ */
+heartbeat_record_t *add_record(uint16_t address) {
+  for (byte i = 0; i < NUM_RECORDS; i++) {
+    if (records[i].address == NO_ADDRESS) {
+      return &records[i];
+    }
+  }
+
+  heartbeat_record_t *oldest = &records[0];
+  for (byte i = 1; i < NUM_RECORDS; i++) {
+    if (records[i].address <= oldest->last_heartbeat_ms) {
+      oldest = &records[i];
+    }
+  }
+  return oldest;
+}
+
+/*
+ * Add a heartbeat message to the tracking system and check for missed sequences
+ */
+void track_heartbeat(uint16_t address, uint16_t sequence) {
+  uint32_t now = millis();
+
+  heartbeat_record_t *record = lookup_record(address);
+  if (record == null) {
+    record = add_record(address);
+    record->address = address;
+    record->count = 0;
+    record->misses = 0;
+  } else {
+    DEBUG1_VALUE("* Last heartbeat elapsed:", now - record->last_heartbeat_ms);
+    if (record->last_sequence + 1 != sequence) {
+      DEBUG1_VALUE(" Bad Sequence last:", record->last_sequence);
+      record->misses++;
+      DEBUG1_VALUE(" misses:", record->misses);
+    }
+  }
+  record->last_sequence = sequence;
+  record->last_heartbeat_ms = now;
+  record->count++;
+
+  DEBUG_PRINT_END();
+}
+
+void dump_tracker() {
+  DEBUG1_PRINTLN("addr\tseq\telapsed\tcount\tmisses")
+  for (byte i = 0; i < NUM_RECORDS; i++) {
+    if (records[i].address != NO_ADDRESS) {
+      DEBUG1_VALUE("*", records[i].address);
+      DEBUG1_VALUE("\t", records[i].last_sequence);
+      DEBUG1_VALUE("\t", millis() - records[i].last_heartbeat_ms)
+      DEBUG1_VALUE("\t", records[i].count);
+      DEBUG1_VALUELN("\t", records[i].misses);
+    }
+  }
+}
+/******************************************************************************/
+
+/*******************************************************************************
+ * Serial CLI handling
+ */
 void print_usage() {
   Serial.print(F(
          "\n"
@@ -173,6 +293,7 @@ void print_usage() {
          "  d <num> - Set transmit period\n"
          "  a <addr> - Set this node's address\n"
          "  P <power> - Set the auto power\n"
+         "  T - Dump out state of heartbeat trackers\n"
  ));
 }
 void clihandler(char **tokens, byte numtokens) {
@@ -249,9 +370,14 @@ void clihandler(char **tokens, byte numtokens) {
 #ifdef ENABLE_ATC
       if (numtokens < 2) return;
       int value = atoi(tokens[1]);
-      DEBUG1_VALUELN("* Setting auto power:", value)
+      DEBUG1_VALUELN("* Setting auto power:", value);
       radio.enableAutoPower(value);
 #endif
+      break;
+    }
+
+    case 'T': {
+      dump_tracker();
       break;
     }
   }
