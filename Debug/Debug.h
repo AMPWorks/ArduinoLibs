@@ -247,3 +247,6 @@ void debug_err_state(int code);
 
 /* Print memory pointers and free space */
 void debug_print_memory();
+
+/* Print out a data buffer in hex */
+void print_hex_buffer(const char *buff, int length);

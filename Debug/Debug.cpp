@@ -43,3 +43,12 @@ void debug_print_memory() {
   DEBUG1_VALUE(" &V: ", (int)&v);
   DEBUG1_VALUELN(" FREE: ", v);
 }
+
+/*
+ * Print the bytes of a buffer as hex values
+ */
+void print_hex_buffer(const char *buff, int length) {
+  for (int b = 0; b < length; b++) {
+    DEBUG4_HEXVAL( " ", buff[b]);
+  }
+}
