@@ -76,6 +76,11 @@ void PixelUtil::init(const uint16_t _numPixels, const uint8_t dataPin, const uin
       FastLED.addLeds<WS2801, 19, 20, RGB>(leds, num_pixels);
     } else
 #endif
+#ifdef PIXELS_APA102_9_6
+    if ((dataPin == 9) && (clockPin == 6)) {
+      FastLED.addLeds<APA102, 9, 6, BGR>(leds, num_pixels);
+    } else
+#endif
 #ifdef PIXELS_APA102_12_8
     if ((dataPin == 12) && (clockPin == 8)) {
       FastLED.addLeds<APA102, 8, 12, BGR>(leds, num_pixels);
@@ -87,7 +92,9 @@ void PixelUtil::init(const uint16_t _numPixels, const uint8_t dataPin, const uin
     } else
 #endif
 #ifdef PIXELS_APA102_20_21
-    FastLED.addLeds<APA102, 20, 21, BGR>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
+    if ((dataPin == 20) && (clockPin == 21)) {
+      FastLED.addLeds<APA102, 20, 21, BGR>(leds, num_pixels);
+    } else
 #endif
 #if !defined(PIXELS_WS2812B_3) && !defined(PIXELS_WS2801_5_7) && !defined(PIXELS_WS2801_19_20)
     // Default pin configuration and LEDs
@@ -99,6 +106,8 @@ void PixelUtil::init(const uint16_t _numPixels, const uint8_t dataPin, const uin
       DEBUG_ERR("Invalid Pixel pin configuration");
       DEBUG_ERR_STATE(DEBUG_ERR_BADPINS);
     }
+
+    FastLED.setCorrection(TypicalLEDStrip);
     setAllRGB(0, 0, 0);
     FastLED.show(); // XXX: Should this be zero'd first?  or skipped?
   }

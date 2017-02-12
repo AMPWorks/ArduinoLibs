@@ -269,7 +269,7 @@ socket_addr_t RS485Socket::destFromData(void *data) {
 }
 
 
-#if DEBUG_LEVEL >= DEBUG_HIGH
+#if DEBUG_LEVEL >= DEBUG_TRACE
 void printSocketMsg(const rs485_socket_msg_t *msg) 
 {
   DEBUG4_VALUE( "i:",  msg->hdr.ID);
@@ -278,13 +278,6 @@ void printSocketMsg(const rs485_socket_msg_t *msg)
   DEBUG4_VALUE( " a:", msg->hdr.address);
   DEBUG4_HEXVAL( " f:", msg->hdr.flags);
   DEBUG4_PRINT(" data:");
-printBuffer(msg->data, msg->hdr.length);
-}
-
-void printBuffer(const byte *buff, int length) 
-{
-  for (int b = 0; b < length; b++) {
-    DEBUG4_HEXVAL( " ", buff[b]);
-  }
+  print_hex_buffer((char *)msg->data, msg->hdr.length);
 }
 #endif
