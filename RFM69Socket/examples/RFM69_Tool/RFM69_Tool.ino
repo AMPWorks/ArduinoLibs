@@ -35,7 +35,7 @@
 #endif
 
 #ifndef ENABLE_ATC
-#define ENABLE_ATC    //comment out this line to disable AUTO TRANSMISSION CONTROL
+//#define ENABLE_ATC    //comment out this line to disable AUTO TRANSMISSION CONTROL
 #endif
 /******************************************************************************/
 
@@ -44,14 +44,19 @@
 #define LED_SEND    12
 #define LED_RECEIVE 13
 
+#ifndef IRQ_PIN
+#define IRQ_PIN RF69_IRQ_PIN
+#define IRQ_NUM RF69_IRQ_NUM
+#endif
+
 #ifdef ENABLE_ATC
-RFM69_ATC radio;
+RFM69_ATC radio(RF69_SPI_CS, IRQ_PIN, false, IRQ_NUM);
 #else
-RFM69 radio;
+RFM69 radio(RF69_SPI_CS, IRQ_PIN, false, IRQ_NUM);;
 #endif
 
 //set to 'true' to sniff all packets on the same network
-bool promiscuousMode = false;
+bool promiscuousMode = true;
 
 void clihandler(char **tokens, byte numtokens);
 SerialCLI serialcli(
@@ -104,7 +109,7 @@ void setup() {
   Serial.println("*** RFM69_ATC Enabled (Auto Transmission Control)");
 #endif
 
-  radio.encrypt(ENCRYPTKEY);
+  radio.encrypt(null); // Start with encryption disabled
   radio.promiscuous(promiscuousMode);
 
 #ifdef ENABLE_ATC
@@ -124,7 +129,7 @@ void loop() {
   // Check for any received data
   if (radio.receiveDone())
   {
-    DEBUG1_VALUE("Received from:", radio.SENDERID);
+    DEBUG1_VALUE("-> Received from:", radio.SENDERID);
     DEBUG1_VALUE(" to:", radio.TARGETID);
     DEBUG1_VALUE(" size:", radio.DATALEN);
     DEBUG1_VALUE(" rssi:", radio.RSSI);
@@ -162,7 +167,7 @@ void loop() {
     heartbeat.magic = HEARTBEAT_MAGIC;
     heartbeat.sequence = heartbeat_sequence++;
 
-    DEBUG1_VALUE("Heartbeat size:", sizeof(heartbeat_msg_t));
+    DEBUG1_VALUE("<- Heartbeat size:", sizeof(heartbeat_msg_t));
     DEBUG1_VALUE(" seq:", heartbeat.sequence);
     DEBUG1_PRINT(" data: ");
     for (byte i = 0; i < sizeof(heartbeat_msg_t); i++)
@@ -249,9 +254,9 @@ void track_heartbeat(uint16_t address, uint16_t sequence) {
     record->count = 0;
     record->misses = 0;
   } else {
-    DEBUG1_VALUE("* Last heartbeat elapsed:", now - record->last_heartbeat_ms);
+    //DEBUG1_VALUE("* Last heartbeat elapsed:", now - record->last_heartbeat_ms);
     if (record->last_sequence + 1 != sequence) {
-      DEBUG1_VALUE(" Bad Sequence last:", record->last_sequence);
+      DEBUG1_VALUE("  * Bad Sequence last:", record->last_sequence);
       record->misses++;
       DEBUG1_VALUE(" misses:", record->misses);
     }
