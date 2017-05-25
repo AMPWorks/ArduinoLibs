@@ -12,9 +12,6 @@
 #include <Arduino.h>
 #include "EEPROM.h"
 
-// TODO: This needs to be set on a per-board basis
-#define EEPROM_MAX_ADDRESS 1024
-
 #define EEPROM_START_BYTE 0xAF
 #define EEPROM_WRAPPER_SIZE 3
 
@@ -30,6 +27,11 @@ int EEPROM_safe_write(int location, uint8_t *data, int datalen);
  * Read back data written by EEPROM_safe_write
  */
 int EEPROM_safe_read(int location, uint8_t *buff, int bufflen);
+
+/*
+ * Read all EEPROM entries and write the data to the serial device
+ */
+void EEPROM_dump(int location);
 
 /*
  * Shift data in EEPROM forward or backware the indicated distance

@@ -86,7 +86,7 @@ int EEPROM_safe_write(int location, uint8_t *data, int datalen) {
   int start = location;
 #endif
 
-  if (location + datalen + EEPROM_WRAPPER_SIZE >= EEPROM_MAX_ADDRESS) {
+  if (location + datalen + EEPROM_WRAPPER_SIZE > E2END) {
     DEBUG_ERR("EEPROM_safe_write: data exceeds max address");
     return -1;
   }
@@ -125,7 +125,7 @@ int EEPROM_safe_read(int location, uint8_t *buff, int bufflen)
 
   DEBUG4_VALUE("EEPROM_safe_read: addr=", location);
 
-  if (location + EEPROM_WRAPPER_SIZE >= EEPROM_MAX_ADDRESS) {
+  if (location + EEPROM_WRAPPER_SIZE > E2END) {
     DEBUG_ERR("EEPROM_safe_read: location exceeds max address");
     return -1;
   }
@@ -141,7 +141,7 @@ int EEPROM_safe_read(int location, uint8_t *buff, int bufflen)
     DEBUG_ERR("EEPROM_safe_read: bufflen less than datalen");
     return -3;
   }
-  if (location + datalen + EEPROM_WRAPPER_SIZE >= EEPROM_MAX_ADDRESS) {
+  if (location + datalen + EEPROM_WRAPPER_SIZE > E2END) {
     DEBUG_ERR("EEPROM_safe_read: data exceeds max address");
     return -4;
   }
@@ -161,6 +161,46 @@ int EEPROM_safe_read(int location, uint8_t *buff, int bufflen)
   DEBUG4_VALUELN(" ret=", location);
 
   return location;
+}
+
+/*
+ * Read all structures starting at the indicated address until we hit the
+ * first unformated data, sending the contents of the structures out via
+ * serial.
+ */
+void EEPROM_dump(int location) {
+  uint8_t val;
+  uint8_t length;
+
+  while (true) {
+    // Check that there is enough room for the structure header
+    if (location + EEPROM_WRAPPER_SIZE > E2END) {
+      goto DONE;
+    }
+
+    // Read and verify that the current location points to a start byte
+    val = EEPROM.read(location);
+    if (val != EEPROM_START_BYTE) {
+      goto DONE;
+    }
+
+    // Read the data length and add in the wrapper size
+    val = EEPROM.read(location + 1);
+    length = val + EEPROM_WRAPPER_SIZE;
+
+    // Read the entire structure (from the start byte) and print the bytes
+    // to the serial device.
+    for (uint8_t i = 0; i < length; i++) {
+      if (location + EEPROM_WRAPPER_SIZE > E2END) {
+        goto DONE;
+      }
+      uint8_t val = EEPROM.read(location++);
+      Serial.print(val, HEX);
+    }
+  }
+
+  DONE:
+  Serial.println();
 }
 
 /*
