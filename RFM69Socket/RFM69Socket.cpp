@@ -126,7 +126,8 @@ void RFM69Socket::sendMsgTo(uint16_t address, const byte * data, const byte data
   DEBUG_PRINT_END();
 #endif
 
-  radio->send(send_address, msg, RFM69_BUFFER_TOTAL(datalength), false /*ACKREQ*/);
+  radio->send(send_address, msg, RFM69_BUFFER_TOTAL(datalength),
+              false /*ACKREQ*/);
 }
 
 const byte *RFM69Socket::getMsg(unsigned int *retlen) {
@@ -149,7 +150,8 @@ const byte *RFM69Socket::getMsg(socket_addr_t address, unsigned int *retlen) {
     DEBUG_PRINT_END();
 #endif
 
-    if (SOCKET_ADDRESS_MATCH(address, RFM69_BROADCAST_CONVERT(msg->hdr.address))) {
+    if (SOCKET_ADDRESS_MATCH(address,
+                             RFM69_BROADCAST_CONVERT(msg->hdr.address))) {
       *retlen = RFM69_DATA_LENGTH(getLength());
       return &(msg->data[0]);
     } else {
