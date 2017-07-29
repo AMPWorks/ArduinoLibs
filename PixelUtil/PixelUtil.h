@@ -4,6 +4,13 @@
 
 #include "FastLED.h"
 
+//#define BIG_PIXELS // Uncomment to allow > 256 pixels
+#ifdef BIG_PIXELS
+  #define PIXEL_ADDR_TYPE uint16_t
+#else
+  #define PIXEL_ADDR_TYPE uint8_t
+#endif
+
 class PRGB {
  public:
   PRGB();
@@ -17,12 +24,8 @@ class PRGB {
   CRGB getCRGB();
 
 
-  //#define BIG_PIXELS // Uncomment to allow > 256 pixels
-#ifdef BIG_PIXELS
-  uint16_t pixel;
-#else
-  uint8_t pixel;  // XXX: Can this be eliminated?!
-#endif
+  PIXEL_ADDR_TYPE pixel;  // XXX: Can this be eliminated?!
+
   byte red, green, blue;
 }; // XXX: Eliminate this class, replace with CRGB from FastLED!
 
@@ -57,11 +60,7 @@ class PixelUtil
   void patternBlue(int periodms);
 
   private:
-#ifdef BIG_PIXELS
-  uint16_t num_pixels;
-#else
-  uint8_t num_pixels;
-#endif
+  PIXEL_ADDR_TYPE num_pixels;
 
   CRGB *leds;
   boolean initialized;

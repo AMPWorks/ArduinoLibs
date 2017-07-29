@@ -31,6 +31,14 @@ void PixelUtil::init(const uint16_t _numPixels, const uint8_t dataPin, const uin
     DEBUG_ERR("PixelUtil::init already initialized");
     DEBUG_ERR_STATE(DEBUG_ERR_REINIT);
   } else {
+
+#ifndef BIG_PIXELS
+  if (_numPixels > (PIXEL_ADDR_TYPE)-1) {
+    DEBUG1_VALUELN("ERROR: Too many pixels:", _numPixels)
+    DEBUG_ERR_STATE(DEBUG_ERR_INVALID);
+  }
+#endif
+
     num_pixels = _numPixels;
     leds = new CRGB[num_pixels];
 
@@ -61,6 +69,11 @@ void PixelUtil::init(const uint16_t _numPixels, const uint8_t dataPin, const uin
       FastLED.addLeds<WS2812B, 10, GRB>(leds, num_pixels);
     } else
 #endif
+#ifdef PIXELS_WS2812B_11
+    if (dataPin == 11) {
+      FastLED.addLeds<WS2812B, 11, GRB>(leds, num_pixels);
+    } else
+#endif
 #ifdef PIXELS_WS2812B_12
     if (dataPin == 12) {
       FastLED.addLeds<WS2812B, 12, GRB>(leds, num_pixels);
@@ -83,7 +96,7 @@ void PixelUtil::init(const uint16_t _numPixels, const uint8_t dataPin, const uin
 #endif
 #ifdef PIXELS_APA102_12_8
     if ((dataPin == 12) && (clockPin == 8)) {
-      FastLED.addLeds<APA102, 8, 12, BGR>(leds, num_pixels);
+      FastLED.addLeds<APA102, 12, 8, BGR>(leds, num_pixels);
     } else
 #endif
 #ifdef PIXELS_APA102_9_10
@@ -95,6 +108,12 @@ void PixelUtil::init(const uint16_t _numPixels, const uint8_t dataPin, const uin
     if ((dataPin == 20) && (clockPin == 21)) {
       FastLED.addLeds<APA102, 20, 21, BGR>(leds, num_pixels);
     } else
+#endif
+#ifdef PIXELS_APA102_5_7 // For 1284P based module using hardware SPI
+    if ((dataPin == 5) && (clockPin == 7)) {
+      FastLED.addLeds<APA102, 5, 7, BGR>(leds, num_pixels);
+    } else
+
 #endif
 #if !defined(PIXELS_WS2812B_3) && !defined(PIXELS_WS2801_5_7) && !defined(PIXELS_WS2801_19_20)
     // Default pin configuration and LEDs
@@ -112,7 +131,7 @@ void PixelUtil::init(const uint16_t _numPixels, const uint8_t dataPin, const uin
     FastLED.show(); // XXX: Should this be zero'd first?  or skipped?
   }
   initialized = true;
-  DEBUG2_PRINTLN("PixelUtil::init");
+  DEBUG2_VALUELN("PixelUtil::init ", numPixels());
 }
 
 uint16_t PixelUtil::numPixels() 
