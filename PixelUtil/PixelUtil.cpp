@@ -161,16 +161,20 @@ void PixelUtil::setPixelRGB(PRGB *rgb) {
 
 void PixelUtil::setAllRGB(byte r, byte g, byte b)
 {
-  for (uint16_t led = 0; led < numPixels(); led++) {
-    leds[led] = CRGB(r, g, b);
-  }
+  fill_solid(leds, numPixels(), CRGB(r, g, b));
 }
 
 void PixelUtil::setAllRGB(uint32_t color)
 {
-  for (uint16_t led = 0; led < numPixels(); led++) {
-    setPixelRGB(led, color);
+  fill_solid(leds, numPixels(), color);
+}
+
+void PixelUtil::setRangeRGB(pixel_range_t range, CRGB crgb) {
+  if (range.start + range.length > numPixels()) {
+    range.length = numPixels() - range.start;
   }
+  if (range.length == 0) setAllRGB(crgb);
+  else fill_solid(leds + range.start, range.length, crgb);
 }
 
 

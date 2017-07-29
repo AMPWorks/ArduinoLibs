@@ -11,6 +11,12 @@
   #define PIXEL_ADDR_TYPE uint8_t
 #endif
 
+/* Structure to represent a range of pixels */
+typedef struct {
+  PIXEL_ADDR_TYPE start;
+  PIXEL_ADDR_TYPE length;
+} pixel_range_t;
+
 class PRGB {
  public:
   PRGB();
@@ -47,6 +53,7 @@ class PixelUtil
   void setPixelRGB(PRGB *rgb);
   void setAllRGB(byte r, byte g, byte b);
   void setAllRGB(uint32_t color);
+  void setRangeRGB(pixel_range_t range, CRGB crgb);
 
   uint32_t getColor(uint16_t led);
 
