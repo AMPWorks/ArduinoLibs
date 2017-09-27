@@ -49,73 +49,95 @@ void PixelUtil::init(const uint16_t _numPixels, const uint8_t dataPin, const uin
    * NOTE: The appropriate #def needs to be set manually here or from the
    * platformio build script.
    */
+#undef PIXELS_DEFINED
 #ifdef PIXELS_WS2812B_3
+#define PIXELS_DEFINED
     if (dataPin == 3) {
       FastLED.addLeds<WS2812B, 3, GRB>(leds, num_pixels);
     } else
 #endif
 #ifdef PIXELS_WS2812B_5
+#define PIXELS_DEFINED
     if (dataPin == 5) {
       FastLED.addLeds<WS2812B, 5, GRB>(leds, num_pixels);
     } else
 #endif
 #ifdef PIXELS_WS2812B_9
+#define PIXELS_DEFINED
     if (dataPin == 9) {
       FastLED.addLeds<WS2812B, 9, GRB>(leds, num_pixels);
     } else
 #endif
 #ifdef PIXELS_WS2812B_10
+#define PIXELS_DEFINED
     if (dataPin == 10) {
       FastLED.addLeds<WS2812B, 10, GRB>(leds, num_pixels);
     } else
 #endif
 #ifdef PIXELS_WS2812B_11
+#define PIXELS_DEFINED
     if (dataPin == 11) {
       FastLED.addLeds<WS2812B, 11, GRB>(leds, num_pixels);
     } else
 #endif
 #ifdef PIXELS_WS2812B_12
+#define PIXELS_DEFINED
     if (dataPin == 12) {
       FastLED.addLeds<WS2812B, 12, GRB>(leds, num_pixels);
     } else
 #endif
 #ifdef PIXELS_WS2801_5_7 // This is for the 1284P based module using hardware SPI
+#define PIXELS_DEFINED
     if ((dataPin == 5) && (clockPin == 7)) {
       FastLED.addLeds<WS2801, 5, 7, RGB>(leds, num_pixels);
     } else
 #endif
 #ifdef PIXELS_WS2801_19_20
+#define PIXELS_DEFINED
     if ((dataPin == 19) && (clockPin == 20)) {
       FastLED.addLeds<WS2801, 19, 20, RGB>(leds, num_pixels);
     } else
 #endif
 #ifdef PIXELS_APA102_9_6
+#define PIXELS_DEFINED
     if ((dataPin == 9) && (clockPin == 6)) {
       FastLED.addLeds<APA102, 9, 6, BGR>(leds, num_pixels);
     } else
 #endif
 #ifdef PIXELS_APA102_12_8
+#define PIXELS_DEFINED
     if ((dataPin == 12) && (clockPin == 8)) {
       FastLED.addLeds<APA102, 12, 8, BGR>(leds, num_pixels);
     } else
 #endif
 #ifdef PIXELS_APA102_9_10
+#define PIXELS_DEFINED
     if ((dataPin == 9) && (clockPin == 10)) {
       FastLED.addLeds<APA102, 9, 10, BGR>(leds, num_pixels);
     } else
 #endif
 #ifdef PIXELS_APA102_20_21
+#define PIXELS_DEFINED
     if ((dataPin == 20) && (clockPin == 21)) {
       FastLED.addLeds<APA102, 20, 21, BGR>(leds, num_pixels);
     } else
 #endif
 #ifdef PIXELS_APA102_5_7 // For 1284P based module using hardware SPI
+#define PIXELS_DEFINED
     if ((dataPin == 5) && (clockPin == 7)) {
       FastLED.addLeds<APA102, 5, 7, BGR>(leds, num_pixels);
     } else
 
 #endif
-#if !defined(PIXELS_WS2812B_3) && !defined(PIXELS_WS2801_5_7) && !defined(PIXELS_WS2801_19_20)
+#ifdef PIXELS_APA102_11_13 // For 328 based module using hardware SPI
+#define PIXELS_DEFINED
+    if ((dataPin == 11) && (clockPin == 13)) {
+      FastLED.addLeds<APA102, 11, 13, BGR>(leds, num_pixels);
+    } else
+
+#endif
+#if !defined(PIXELS_DEFINED) || defined(PIXELS_WS2801_12_8)
+#define PIXELS_DEFINED
     // Default pin configuration and LEDs
     if ((dataPin == 12) && (clockPin == 8)) {
       FastLED.addLeds<WS2801, 12, 8, RGB>(leds, num_pixels);
