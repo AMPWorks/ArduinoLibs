@@ -149,7 +149,7 @@
 class MPR121
 {
  public:
-  static const uint8_t MAX_SENSORS = 13;
+  static const uint8_t MAX_SENSORS = 12; // Note: 13 for priximity sensing
 
   MPR121();
 
