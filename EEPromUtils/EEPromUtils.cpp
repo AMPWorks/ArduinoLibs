@@ -164,6 +164,14 @@ int EEPROM_safe_read(int location, uint8_t *buff, int bufflen)
 }
 
 /*
+ * Check the data at the indicated location to see if it is the beginning
+ * of a structure;
+ */
+boolean EEPROM_check_address(int location) {
+  return (EEPROM.read(location) == EEPROM_START_BYTE);
+}
+
+/*
  * Read all structures starting at the indicated address until we hit the
  * first unformated data, sending the contents of the structures out via
  * serial.

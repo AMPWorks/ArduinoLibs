@@ -39,6 +39,12 @@ int EEPROM_safe_write(int location, uint8_t *data, int datalen);
 int EEPROM_safe_read(int location, uint8_t *buff, int bufflen);
 
 /*
+ * Check the data at the indicated location to see if it is the beginning
+ * of a structure;
+ */
+boolean EEPROM_check_address(int location);
+
+/*
  * Read all EEPROM entries and write the data to the serial device
  */
 void EEPROM_dump(int location);
