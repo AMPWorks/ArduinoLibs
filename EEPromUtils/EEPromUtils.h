@@ -15,8 +15,18 @@
 #define EEPROM_START_BYTE 0xAF
 #define EEPROM_WRAPPER_SIZE 3
 
+
+/* Error result codes */
+#define EEPROM_ERROR_END_EXCEEDED -1
+#define EEPROM_ERROR_NOT_START    -2
+#define EEPROM_ERROR_BAD_LEN      -3
+#define EEPROM_CRC_ERROR          -4
+
 /* This returns the actual size of data written to EEPROM by this library */
 #define EEPROM_SIZE(x) (EEPROM_WRAPPER_SIZE + x)
+
+/* This returns the size of just the data portion in EEPROM */
+#define EEPROM_DATA_SIZE(x) (x - EEPROM_WRAPPER_SIZE)
 
 /*
  * Write data to EEPROM along with CRC, start, and length protections
