@@ -199,6 +199,14 @@ void PixelUtil::setRangeRGB(pixel_range_t range, CRGB crgb) {
   else fill_solid(leds + range.start, range.length, crgb);
 }
 
+/*
+ * setDistinct() is used to set a single LED value in setups where each
+ * value is a distinct led rather than RGB pixels.
+ */
+void PixelUtil::setDistinct(PIXEL_ADDR_TYPE led, byte value){
+  leds[led / (PIXEL_ADDR_TYPE)3][led % 3] = value;
+}
+
 
 uint32_t PixelUtil::getColor(uint16_t led) {
   return pixel_color(leds[led].r, leds[led].g, leds[led].b);
