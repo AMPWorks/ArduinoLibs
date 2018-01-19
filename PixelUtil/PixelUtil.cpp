@@ -136,6 +136,16 @@ void PixelUtil::init(const uint16_t _numPixels, const uint8_t dataPin, const uin
     } else
 
 #endif
+
+#ifdef PIXELS_WS2801_SPI // For 328 based module using hardware SPI
+#define PIXELS_DEFINED
+    if ((dataPin == 11) && (clockPin == 13)) {
+      FastLED.addLeds<WS2801, RGB>(leds, num_pixels);
+    } else
+
+#endif
+
+
 #if !defined(PIXELS_DEFINED) || defined(PIXELS_WS2801_12_8)
 #define PIXELS_DEFINED
     // Default pin configuration and LEDs
