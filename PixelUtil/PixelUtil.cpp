@@ -231,6 +231,14 @@ void PixelUtil::setRangeRGB(pixel_range_t range, CRGB crgb) {
   else fill_solid(leds + range.start, range.length, crgb);
 }
 
+/**
+ * Sets the brightness level of all LEDs
+ * @param brightness
+ */
+void PixelUtil::setBrightness(uint8_t brightness) {
+  FastLED.setBrightness(brightness);
+}
+
 /*
  * setDistinct() is used to set a single LED value in setups where each
  * value is a distinct led rather than RGB pixels.

@@ -82,6 +82,7 @@ class PixelUtil
   void setAllRGB(byte r, byte g, byte b);
   void setAllRGB(uint32_t color);
   void setRangeRGB(pixel_range_t range, CRGB crgb);
+  void setBrightness(uint8_t brightness);
 
   /*
    * setDistinct() is used to set a single LED value in setups where each
