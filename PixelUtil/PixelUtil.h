@@ -1,3 +1,31 @@
+/*******************************************************************************
+ * Pixel strand utility, a wrapper for the FastLED library which provides for
+ * some additional functionality.
+ *
+ * License: Create Commons Attribution-Share-Alike
+ * Copyright: 2014
+ */
+
+/*
+ * There are a number of compile flags used to control the behavior of
+ * PixelUtil:
+ *
+ *   BIG_PIXELS: This should be enabled to allow more than 255 LEDs, leaving it
+ *               disabled slightly reduces memory usage.
+ *   PIXEL_NUM_OVERRIDE: Use to override the number of LEDs passed in at
+ *               initialization.  This is useful if you want to set the number of
+ *               LEDs in a platformio config rather than in code or configuration.
+ *   DEBUG_LEVEL_PIXELUTIL: Set a debug level specific to PixelUtil
+ *
+ * Since FastLED uses compiler tricks to determine which type of LED code to
+ * include a compiler flag must be provided to specify the LED type and the MCU
+ * pins being used.  The format for this is
+ *   PIXELS_<type>_<datapin>[_clockpin]
+ * such as:
+ *
+ *   PIXELS_WS2812B_3: WS2812B LEDs with data pin 3
+ *   PIXELS_APA102_12_8: APA102 LEDs with data pin 12 and clock pin 8
+ */
 
 #ifndef PIXELUTIL_H
 #define PIXELUTIL_H

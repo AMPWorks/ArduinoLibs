@@ -238,6 +238,7 @@
 #define DEBUG_ERR_INVALID 0x12
 #define DEBUG_ERR_REINIT  0x13
 #define DEBUG_ERR_BADPINS 0x14
+#define DEBUG_ERR_MEMCORRUPT 0x15
 
 /*
  * Enter a loop which will continually flash an error code on

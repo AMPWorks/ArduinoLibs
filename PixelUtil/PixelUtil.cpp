@@ -1,11 +1,17 @@
 /*******************************************************************************
- * Pixel strand utility, derived from Adafruit_WS2801 library example
+ * Pixel strand utility, a wrapper for the FastLED library which provides for
+ * some additional functionality.
+ *
+ * License: Create Commons Attribution-Share-Alike
+ * Copyright: 2014
  */
 
 #include <Arduino.h>
 #include "FastLED.h"
 
-//#define DEBUG_LEVEL DEBUG_HIGH
+#ifdef DEBUG_LEVEL_PIXELUTIL
+  #define DEBUG_LEVEL DEBUG_LEVEL_PIXELUTIL
+#endif
 #include "Debug.h"
 
 #include "PixelUtil.h"
@@ -24,8 +30,8 @@ PixelUtil::PixelUtil(uint16_t numPixels, uint8_t dataPin, uint8_t clockPin,
   init(numPixels, dataPin, clockPin, order);
 }
 
-void PixelUtil::init(const uint16_t _numPixels, const uint8_t dataPin, const uint8_t clockPin,
-                     const uint8_t order)
+void PixelUtil::init(const uint16_t _numPixels, const uint8_t dataPin,
+                     const uint8_t clockPin, const uint8_t order)
 {
   if (initialized) {
     DEBUG_ERR("PixelUtil::init already initialized");
@@ -33,22 +39,38 @@ void PixelUtil::init(const uint16_t _numPixels, const uint8_t dataPin, const uin
   } else {
 
 #ifndef BIG_PIXELS
-  if (_numPixels > (PIXEL_ADDR_TYPE)-1) {
-    DEBUG1_VALUELN("ERROR: Too many pixels:", _numPixels)
-    DEBUG_ERR_STATE(DEBUG_ERR_INVALID);
-  }
+    if (_numPixels > (PIXEL_ADDR_TYPE)-1) {
+      DEBUG1_VALUELN("ERROR: Too many pixels:", _numPixels)
+      DEBUG_ERR_STATE(DEBUG_ERR_INVALID);
+    }
 #endif
 
-    num_pixels = _numPixels;
-    leds = new CRGB[num_pixels];
+    num_pixels = (PIXEL_ADDR_TYPE)_numPixels;
 
-  /*
-   * Since the FastLED library uses templates each pin combo needs to be
-   * specified here.
-   *
-   * NOTE: The appropriate #def needs to be set manually here or from the
-   * platformio build script.
-   */
+#ifdef PIXEL_NUM_OVERRIDE
+    DEBUG1_VALUELN("Pix override:", PIXEL_NUM_OVERRIDE);
+    num_pixels = (PIXEL_ADDR_TYPE)PIXEL_NUM_OVERRIDE;
+#endif
+
+    /*
+     * Allocate the LED data array.  This has proven to be a likely cause
+     * of memory corruption when the number of LEDs is too high, which
+     * leads to an error check for a common corruption below.
+     */
+    leds = new CRGB[num_pixels];
+#ifndef PIXEL_NUM_OVERIDE
+    if (num_pixels != _numPixels) {
+        DEBUG_ERR_STATE(DEBUG_ERR_MEMCORRUPT);
+    }
+#endif
+
+    /*
+     * Since the FastLED library uses templates each pin combo needs to be
+     * specified here.
+     *
+     * NOTE: The appropriate #def needs to be set manually here or from the
+     * platformio build script.
+     */
 #undef PIXELS_DEFINED
 #ifdef PIXELS_WS2812B_3
 #define PIXELS_DEFINED
