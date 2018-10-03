@@ -58,9 +58,10 @@ void PixelUtil::init(const uint16_t _numPixels, const uint8_t dataPin,
      * leads to an error check for a common corruption below.
      */
     leds = new CRGB[num_pixels];
-#ifndef PIXEL_NUM_OVERIDE
+#ifndef PIXEL_NUM_OVERRIDE
     if (num_pixels != _numPixels) {
-        DEBUG_ERR_STATE(DEBUG_ERR_MEMCORRUPT);
+      DEBUG_ERR("Numpix changed");
+      DEBUG_ERR_STATE(DEBUG_ERR_MEMCORRUPT);
     }
 #endif
 
