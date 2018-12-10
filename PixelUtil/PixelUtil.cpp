@@ -85,6 +85,12 @@ void PixelUtil::init(const uint16_t _numPixels, const uint8_t dataPin,
       FastLED.addLeds<WS2812B, 5, GRB>(leds, num_pixels);
     } else
 #endif
+#ifdef PIXELS_WS2812B_6
+#define PIXELS_DEFINED
+    if (dataPin == 6) {
+      FastLED.addLeds<WS2812B, 6, GRB>(leds, num_pixels).setCorrection(TypicalSMD5050);
+    } else
+#endif
 #ifdef PIXELS_WS2812B_9
 #define PIXELS_DEFINED
     if (dataPin == 9) {
@@ -106,7 +112,7 @@ void PixelUtil::init(const uint16_t _numPixels, const uint8_t dataPin,
 #ifdef PIXELS_WS2812B_12
 #define PIXELS_DEFINED
     if (dataPin == 12) {
-      FastLED.addLeds<WS2812B, 12, GRB>(leds, num_pixels);
+      FastLED.addLeds<WS2812B, 12, GRB>(leds, num_pixels).setCorrection(TypicalSMD5050);
     } else
 #endif
 #ifdef PIXELS_WS2801_5_7 // This is for the 1284P based module using hardware SPI
@@ -119,6 +125,12 @@ void PixelUtil::init(const uint16_t _numPixels, const uint8_t dataPin,
 #define PIXELS_DEFINED
     if ((dataPin == 19) && (clockPin == 20)) {
       FastLED.addLeds<WS2801, 19, 20, RGB>(leds, num_pixels);
+    } else
+#endif
+#ifdef PIXELS_APA102_7_8
+#define PIXELS_DEFINED
+    if ((dataPin == 7) && (clockPin == 8)) {
+      FastLED.addLeds<APA102, 7, 8, BGR>(leds, num_pixels);
     } else
 #endif
 #ifdef PIXELS_APA102_9_6
@@ -165,7 +177,6 @@ void PixelUtil::init(const uint16_t _numPixels, const uint8_t dataPin,
     if ((dataPin == 11) && (clockPin == 13)) {
       FastLED.addLeds<WS2801, RGB>(leds, num_pixels);
     } else
-
 #endif
 
 
