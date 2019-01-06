@@ -21,7 +21,10 @@
 #include "Socket.h"
 
 #include <RS485_non_blocking.h>
+
+#ifdef __AVR__
 #include <SoftwareSerial.h>
+#endif
 
 // TODO: Should be specified by the sketch that creates the socket rather than
 // being statically defined
@@ -104,6 +107,11 @@ class RS485Socket : public Socket
 
   byte recvLimit;
 	socket_addr_t sourceAddress;
+
+	// TODO: This could likely be a higher rate, especially on devices with
+	//       hardware serial.  However all connected devices would need to use
+	//       the same speed
+	static const int DEFAULT_BAUD = 28000;
 
  private:
   byte enablePin;

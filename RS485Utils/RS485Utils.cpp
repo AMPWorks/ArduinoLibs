@@ -15,7 +15,10 @@
  ******************************************************************************/
 
 #include <RS485_non_blocking.h>
+
+#ifdef __AVR__
 #include <SoftwareSerial.h>
+#endif
 
 #ifdef DEBUG_LEVEL_RS485UTILS
   #define DEBUG_LEVEL DEBUG_LEVEL_RS485UTILS
@@ -72,7 +75,14 @@ void RS485Socket::init(byte _recvPin, byte _xmitPin, byte _enablePin,
     // XXX - Could re-init the config?
   } else {
 #ifdef RS485_HARDWARE_SERIAL
+
+#if defined(ESP32)
+    serial = new HardwareSerial(RS485_HARDWARE_SERIAL);
+    serial->begin(DEFAULT_BAUD, SERIAL_8N1, _recvPin, _xmitPin);
+#else
     serial = &RS485_HARDWARE_SERIAL;
+#endif
+
 #else
     serial = new SoftwareSerial(_recvPin, _xmitPin);
 #endif
@@ -107,11 +117,13 @@ void RS485Socket::setup()
     DEBUG_ERR_STATE(DEBUG_ERR_UNINIT);
   }
 
-  DEBUG5_VALUELN("RS485 setup: ", 28800);
-  serial->begin(28800); // XXX - Could this be a higher rate?
+  DEBUG5_VALUELN("RS485 setup: ", DEFAULT_BAUD);
+#if !defined(ESP32)
+  serial->begin(DEFAULT_BAUD);
+#endif
 
   channel->begin();
-  
+
   pinMode(enablePin, OUTPUT);
 
   digitalWrite(enablePin, LOW);
@@ -164,6 +176,7 @@ int RS485Socket::serialAvailable()
  */
 byte * RS485Socket::initBuffer(byte * data, uint16_t data_size) 
 {
+  DEBUG4_VALUELN("initBuffer: size:", data_size);
   send_data_size = data_size; // XXX?
   send_buffer = data + sizeof (rs485_socket_hdr_t);
   return send_buffer;

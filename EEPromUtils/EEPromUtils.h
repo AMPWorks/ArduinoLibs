@@ -28,6 +28,15 @@
 /* This returns the size of just the data portion in EEPROM */
 #define EEPROM_DATA_SIZE(x) (x - EEPROM_WRAPPER_SIZE)
 
+/* Call before working with the EEPROM via this library */
+bool EEPROM_init();
+
+/* Ensures that all changed data is written to the EEPROM */
+bool EEPROM_commit();
+
+/* Call to indicate that we are done working with the EEPROM */
+void EEPROM_end();
+
 /*
  * Write data to EEPROM along with CRC, start, and length protections
  */

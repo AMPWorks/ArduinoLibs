@@ -245,7 +245,7 @@ class MPR121
 #define INTERUPT_4_PIN  1
 #define INTERUPT_5_PIN -1
 #else
-XXX - This board needs to be defined
+#error This board needs to be defined
 #define INTERUPT_0_PIN -1
 #define INTERUPT_1_PIN -1
 #define INTERUPT_2_PIN -1

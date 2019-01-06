@@ -10,6 +10,17 @@
 
 #include "EEPromUtils.h"
 
+#if defined(ESP32)
+/*
+ * Unfortunately there are some usage differences between the EEPROM library for
+ * AVR and Esp32, including that E2END is undefined and that EEPROM.length() by
+ * default returns zero.  We correct that here by defining E2END to be the size
+ * of the sector that is reserved for the EEPROM shim.
+ */
+  #define E2END SPI_FLASH_SEC_SIZE
+#endif
+
+
 /*
  * FROM:
  *   - http://www.barrgroup.com/Embedded-Systems/How-To/CRC-Calculation-C-Code
@@ -57,6 +68,42 @@ EEPROM_crc(uint8_t const data[], int datalen)
      * The final remainder is the CRC result.
      */
     return (remainder);
+}
+
+/*
+ * This function should be called before accessing (for read or write) any data
+ * in EEPROM.  This is present for multi-platform support, as EEPROM on Esp32
+ * requires begin() to be called with the EEPROM partition size before reading
+ * or writing.
+ */
+bool EEPROM_init() {
+#if defined(ESP32)
+  return EEPROM.begin(E2END);
+#else
+  return true;
+#endif
+}
+
+/*
+ * Commit all changes to the EEPROM
+ */
+bool EEPROM_commit() {
+#if defined(ESP32)
+  return EEPROM.commit();
+#else
+  return true;
+#endif
+}
+
+/*
+ * Complete working with the EEPROM.  Again this is for Esp32 support, as the
+ * Esp32 EEPROM library allocates an in-memory array for the entirety of the
+ * EEPROM.
+ */
+void EEPROM_end() {
+#if defined(ESP32)
+  EEPROM.end();
+#endif
 }
 
 /*
