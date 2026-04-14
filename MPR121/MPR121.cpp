@@ -38,6 +38,18 @@
  * handlers are defined.
  */
 MPR121 *cap[2] = {NULL, NULL};
+#ifdef ARDUINO_ARCH_ESP32
+void IRAM_ATTR irqTriggered0() {
+  noInterrupts();
+  if (cap[0] != NULL) cap[0]->triggered = true;
+  interrupts();
+}
+void IRAM_ATTR irqTriggered1() {
+  noInterrupts();
+  if (cap[1] != NULL) cap[1]->triggered = true;
+  interrupts();
+}
+#else
 void irqTriggered0() {
   // TODO: properly tag function with 'interrupt'
   noInterrupts();
@@ -49,6 +61,7 @@ void irqTriggered1() {
   if (cap[1] != NULL) cap[1]->triggered = true;
   interrupts();
 }
+#endif
 
 MPR121::MPR121() {
   initialized = false;
@@ -56,6 +69,7 @@ MPR121::MPR121() {
   useInterrupt = false;
   irqpin = false;
   touchTimes = NULL;
+  filteredData = NULL;
 }
 
 /*
@@ -64,22 +78,28 @@ MPR121::MPR121() {
 MPR121::MPR121(byte _irqpin, boolean _useInterrupt, byte _address,
 	       boolean times) {
   initialized = false;
-  init(_irqpin, _useInterrupt, _address, times, false);
+  init(_irqpin, _useInterrupt, _address, times, false, false);
 }
 
 MPR121::MPR121(byte _irqpin, boolean _useInterrupt, byte _address,
                boolean times, boolean auto_enabled) {
   initialized = false;
-  init(_irqpin, _useInterrupt, _address, times, auto_enabled);
+  init(_irqpin, _useInterrupt, _address, times, false, auto_enabled);
+}
+
+MPR121::MPR121(byte _irqpin, boolean _useInterrupt, byte _address,
+               boolean times, boolean filtered, boolean auto_enabled) {
+  initialized = false;
+  init(_irqpin, _useInterrupt, _address, times, filtered, auto_enabled);
 }
 
 MPR121::MPR121(byte _irqpin, boolean _useInterrupt, boolean times) {
   initialized = false;
-  init(_irqpin, _useInterrupt, START_ADDRESS, times, false);
+  init(_irqpin, _useInterrupt, START_ADDRESS, times, false, false);
 }
 
 void MPR121::init(byte _irqpin, boolean _useInterrupt, byte _address,
-                  boolean times, boolean auto_enabled) {
+                  boolean times, boolean filtered, boolean auto_enabled) {
   if (initialized) {
     DEBUG_ERR("MPR121::init already initialized");
     DEBUG_ERR_STATE(DEBUG_ERR_REINIT);
@@ -103,6 +123,23 @@ void MPR121::init(byte _irqpin, boolean _useInterrupt, byte _address,
       touchTimes = NULL;
     }
 
+    if (filtered) {
+      filteredData = (uint16_t *)malloc(sizeof(uint16_t) * TOTAL_SENSORS);
+      for (int i = 0; i < TOTAL_SENSORS; i++) {
+        filteredData[i] = 0;
+      }
+    } else {
+      filteredData = NULL;
+    }
+
+#ifdef ARDUINO_ARCH_ESP32
+    // ESP32: INPUT_PULLUP handles open-collector active-LOW IRQ; any GPIO is valid
+    if (useInterrupt) {
+      pinMode(irqpin, INPUT_PULLUP);
+      cap[0] = this;  // only one sensor supported for now
+      attachInterrupt(digitalPinToInterrupt(irqpin), irqTriggered0, FALLING);
+    }
+#else
     pinMode(irqpin, INPUT);
     digitalWrite(irqpin, HIGH); //enable pullup resistor XXX: Is this needed with interrupts? TODO: Don't need if physical one present?
 
@@ -131,6 +168,7 @@ void MPR121::init(byte _irqpin, boolean _useInterrupt, byte _address,
         break;
       }
     }
+#endif
   }
 
   // Setup the configuration mask
@@ -272,7 +310,7 @@ boolean MPR121::changed(byte sensor) {
 }
 
 /*
- *  If currently touched, return the time touched so far, otherwise return
+ * If currently touched, return the time touched so far, otherwise return
  * the total time from the last touch period.
  */
 unsigned long MPR121::touchTime(byte sensor) {
@@ -368,8 +406,8 @@ uint8_t MPR121::getBaseline(byte sensor) {
 }
 
 uint16_t MPR121::getFiltered(byte sensor) {
-  // TODO: Add calls to fetch filtered sensor values
-  return 0;
+  if (!filteredData || sensor >= TOTAL_SENSORS) return 0;
+  return filteredData[sensor];
 }
 
 
@@ -450,20 +488,20 @@ boolean MPR121::getBaselineAll() {
  * Get the filtered sensor values
  */
 boolean MPR121::getFilteredAll() {
-  unsigned char LSB, MSB;
+  if (!filteredData) return false;
 
   Wire.beginTransmission(address);
   // set address register to read from the start of the filtered data
   Wire.write(E0FDL);
   Wire.endTransmission(false); // repeated start
 
-  if (Wire.requestFrom((uint8_t)address,
-                       (uint8_t)(MAX_SENSORS * 2)) == MAX_SENSORS * 2) {
-    for(int i=0; i < MAX_SENSORS; i++){ // 13 filtered values
-      LSB = Wire.read();
-      MSB = Wire.read();
-      uint16_t result = ((MSB << 8) | LSB);
-      DEBUG3_VALUE(" ", result);
+  // Read TOTAL_SENSORS channels (0–11 electrodes + 12 proximity), 2 bytes each
+  if (Wire.requestFrom((uint8_t)address, (uint8_t)(TOTAL_SENSORS * 2)) == TOTAL_SENSORS * 2) {
+    for (int i = 0; i < TOTAL_SENSORS; i++) {
+      unsigned char LSB = Wire.read();
+      unsigned char MSB = Wire.read();
+      filteredData[i] = ((MSB << 8) | LSB);
+      DEBUG3_VALUE(" ", filteredData[i]);
     }
 
     return true;

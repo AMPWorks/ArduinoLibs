@@ -123,7 +123,7 @@ void PixelUtil::setRangeRGB(pixel_range_t range, CRGB crgb) {
   if (range.start + range.length > numPixels()) {
     range.length = numPixels() - range.start;
   }
-  if (range.length == 0) setAllRGB(crgb);
+  if (range.length == 0) setAllRGB(crgb.r, crgb.g, crgb.b);
   else fill_solid(leds + range.start, range.length, crgb);
 }
 

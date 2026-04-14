@@ -149,7 +149,9 @@
 class MPR121
 {
  public:
-  static const uint8_t MAX_SENSORS = 12; // Note: 13 for priximity sensing
+  static const uint8_t MAX_SENSORS   = 12; // touch electrodes (0–11), add one for proximity
+  static const uint8_t TOTAL_SENSORS = 13; // electrodes + proximity
+  static const uint8_t PROX_SENSOR   = 12; // proximity electrode index (12)
 
   MPR121();
 
@@ -160,8 +162,11 @@ class MPR121
   MPR121(byte irqpin, boolean interrupt, byte address, boolean times);
   MPR121(byte irqpin, boolean interrupt, byte address, boolean times,
          boolean auto_enabled);
-  void init(byte irqpin, boolean interrupt, byte address, boolean times, 
-            boolean auto_enabled);
+  // filtered=true allocates filteredData heap buffer for getFilteredAll()/getFiltered()
+  MPR121(byte irqpin, boolean interrupt, byte address, boolean times,
+         boolean filtered, boolean auto_enabled);
+  void init(byte irqpin, boolean interrupt, byte address, boolean times,
+            boolean filtered, boolean auto_enabled);
 
   void enable();
   void disable();
@@ -197,6 +202,7 @@ class MPR121
 
   uint16_t touchStates;
   uint16_t prevStates;
+  uint16_t *filteredData; // heap-allocated when filtered=true; NULL otherwise
   unsigned long *touchTimes; // XXX - Uses 4bytes even when not used
 
   void initialize(boolean auto_enabled);
@@ -244,8 +250,17 @@ class MPR121
 #define INTERUPT_3_PIN  0
 #define INTERUPT_4_PIN  1
 #define INTERUPT_5_PIN -1
+#elif defined(ARDUINO_ARCH_ESP32)
+// ESP32: any GPIO can be an interrupt pin — no fixed mapping needed
+// INTERUPT_N_PIN values are unused on ESP32; interrupt is attached directly in init()
+#define INTERUPT_0_PIN -1
+#define INTERUPT_1_PIN -1
+#define INTERUPT_2_PIN -1
+#define INTERUPT_3_PIN -1
+#define INTERUPT_4_PIN -1
+#define INTERUPT_5_PIN -1
 #else
-#error This board needs to be defined
+// Unknown board: define as -1 (useInterrupt will be forced false)
 #define INTERUPT_0_PIN -1
 #define INTERUPT_1_PIN -1
 #define INTERUPT_2_PIN -1

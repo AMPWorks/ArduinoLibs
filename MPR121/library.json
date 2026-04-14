@@ -19,5 +19,5 @@
     },
     "include": "MPR121",
     "frameworks": "arduino",
-    "platforms": "atmelavr"
+    "platforms": ["atmelavr", "espressif32"]
 }

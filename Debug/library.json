@@ -14,5 +14,5 @@
     },
     "include": "Debug",
     "frameworks": "arduino",
-    "platforms": "atmelavr"
+    "platforms": ["atmelavr", "espressif32"]
 }
